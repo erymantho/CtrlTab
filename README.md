@@ -92,7 +92,7 @@ CtrlTab will be available at `http://localhost:8090`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DB_PATH` | `/app/data/linkmanager.db` | Path to SQLite database file |
+| `DB_PATH` | `/app/data/ctrltab.db` | Path to SQLite database file |
 | `NODE_ENV` | `production` | Node environment |
 
 The default port is `8090`. Change it in `docker-compose.yml` under the `web` service.
