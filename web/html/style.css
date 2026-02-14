@@ -826,14 +826,21 @@ body {
     color: var(--color-text-primary);
 }
 
-.btn-icon.btn-danger {
+.btn-text-danger {
+    background: none;
+    border: none;
     color: #dc3545;
-    border-color: transparent;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-family: var(--font-main);
+    transition: background 0.15s ease;
 }
 
-.btn-icon.btn-danger:hover {
+.btn-text-danger:hover {
     background: rgba(220, 53, 69, 0.1);
-    color: #dc3545;
 }
 
 .btn-icon:active {
@@ -918,10 +925,15 @@ body {
     transform: scale(1.1);
 }
 
-[data-theme="cyberpunk"] .btn-icon.btn-danger:hover {
-    background: rgba(255, 0, 110, 0.2);
-    border-color: var(--color-neon-pink);
+[data-theme="cyberpunk"] .btn-text-danger {
     color: var(--color-neon-pink);
+    font-family: var(--font-main);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+[data-theme="cyberpunk"] .btn-text-danger:hover {
+    background: rgba(255, 0, 110, 0.2);
     box-shadow: var(--glow-pink);
 }
 
