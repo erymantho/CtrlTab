@@ -848,8 +848,6 @@ body {
 
 .modal-danger-zone {
     margin-top: var(--spacing-lg);
-    padding-top: var(--spacing-lg);
-    border-top: 1px solid var(--color-bg-tertiary);
 }
 
 .btn-icon:active {
@@ -868,6 +866,7 @@ body {
     transition: opacity 0.15s ease;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: var(--spacing-sm);
     font-family: var(--font-main);
 }
