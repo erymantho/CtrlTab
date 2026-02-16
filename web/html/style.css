@@ -72,6 +72,29 @@
     --glow-lime: 0 0 10px var(--color-neon-lime), 0 0 20px var(--color-neon-lime);
 }
 
+/* --- Dark Theme --- */
+[data-theme="dark"] {
+    --color-neon-pink: #e0558e;
+    --color-neon-cyan: #4da3ff;
+    --color-neon-purple: #9b6ddb;
+    --color-neon-lime: #3dbd7d;
+    --color-neon-blue: #4da3ff;
+
+    --color-bg-primary: #1a1a2e;
+    --color-bg-secondary: #16213e;
+    --color-bg-tertiary: #2a2a4a;
+    --color-bg-elevated: #1e1e3a;
+
+    --color-text-primary: #e8e8f0;
+    --color-text-secondary: #b0b0c8;
+    --color-text-muted: #6b6b8a;
+
+    --glow-pink: none;
+    --glow-cyan: none;
+    --glow-purple: none;
+    --glow-lime: none;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    Reset & Base
    ═══════════════════════════════════════════════════════════════ */
