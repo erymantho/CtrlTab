@@ -458,11 +458,17 @@ async function handleDeleteCollection() {
         await deleteCollection(currentCollectionId);
         currentCollectionId = null;
         await loadCollections();
-        elements.collectionTitle.textContent = 'Select a collection';
+        elements.collectionTitle.textContent = 'CtrlTab';
         elements.sectionsContainer.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">⌘</div>
-                <p>Select a collection to view your links</p>
+                <p>Create your first collection</p>
+                <button class="btn-primary" onclick="showAddCollectionModal()" style="margin-top: var(--spacing-lg);">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    New Collection
+                </button>
             </div>
         `;
         elements.editCollectionBtn.style.display = 'none';
