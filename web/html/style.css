@@ -72,22 +72,22 @@
     --glow-lime: 0 0 10px var(--color-neon-lime), 0 0 20px var(--color-neon-lime);
 }
 
-/* --- Dark Theme (Neutral) --- */
+/* --- Dark Theme (Warm) --- */
 [data-theme="dark"] {
-    --color-neon-pink: #f43f5e;
-    --color-neon-cyan: #3b82f6;
-    --color-neon-purple: #8b5cf6;
-    --color-neon-lime: #22c55e;
-    --color-neon-blue: #3b82f6;
+    --color-neon-pink: #fb7185;
+    --color-neon-cyan: #f59e0b;
+    --color-neon-purple: #a78bfa;
+    --color-neon-lime: #34d399;
+    --color-neon-blue: #f59e0b;
 
-    --color-bg-primary: #1b1b1f;
-    --color-bg-secondary: #232328;
-    --color-bg-tertiary: #3a3a40;
-    --color-bg-elevated: #2b2b30;
+    --color-bg-primary: #1c1917;
+    --color-bg-secondary: #231f1d;
+    --color-bg-tertiary: #3f3a36;
+    --color-bg-elevated: #292524;
 
-    --color-text-primary: #e4e4e7;
-    --color-text-secondary: #a1a1aa;
-    --color-text-muted: #71717a;
+    --color-text-primary: #fafaf9;
+    --color-text-secondary: #a8a29e;
+    --color-text-muted: #78716c;
 
     --glow-pink: none;
     --glow-cyan: none;
