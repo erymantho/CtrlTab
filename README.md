@@ -22,6 +22,7 @@ A lightweight, self-hosted bookmark and link manager to organize your links into
 - 🐳 **Docker-ready** — Runs as a two-container stack (API + Nginx)
 - 🪶 **Lightweight** — SQLite database, no external dependencies
 - 🔒 **Self-hosted** — Your data stays on your server
+- 📱 **PWA** — Installable as app, works offline for static assets
 - 📱 **Responsive** — Works on desktop, tablet, and mobile
 
 ## Quick Start
