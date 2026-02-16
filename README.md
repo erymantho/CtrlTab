@@ -17,6 +17,7 @@ A lightweight, self-hosted bookmark and link manager to organize your links into
 - 📑 **Sections** — Organize links within collections under named headings
 - 🔗 **Links** — Store URLs with auto-fetched favicons
 - 🎨 **Themes** — Light (default), Dark, and Neon Cyberpunk with grid backgrounds, scan lines, and RGB glow effects
+- 👤 **User Accounts** — Multi-user with admin panel, JWT authentication, and per-user data isolation
 - ⚡ **Full CRUD** — Create, read, update, and delete all resources through an intuitive dashboard
 - 🐳 **Docker-ready** — Runs as a two-container stack (API + Nginx)
 - 🪶 **Lightweight** — SQLite database, no external dependencies
@@ -35,10 +36,16 @@ A lightweight, self-hosted bookmark and link manager to organize your links into
 ```bash
 git clone https://github.com/erymantho/ctrltab.git
 cd ctrltab
+
+# Set your credentials (or use defaults: admin / admin123)
+export JWT_SECRET="your-secret-key"
+export ADMIN_USERNAME="admin"
+export ADMIN_PASSWORD="your-secure-password"
+
 docker compose up -d
 ```
 
-CtrlTab will be available at `http://localhost:8090`.
+CtrlTab will be available at `http://localhost:8090`. Log in with your admin credentials.
 
 ### Deploy with Portainer
 
@@ -70,9 +77,18 @@ CtrlTab will be available at `http://localhost:8090`.
 
 ## API Endpoints
 
+All data endpoints require a valid JWT token via `Authorization: Bearer <token>` header.
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/api/collections` | List all collections |
+| `POST` | `/api/auth/login` | Login, returns JWT token |
+| `GET` | `/api/auth/verify` | Verify token validity |
+| `POST` | `/api/auth/change-password` | Change own password |
+| `GET` | `/api/admin/users` | List all users (admin only) |
+| `POST` | `/api/admin/users` | Create a user (admin only) |
+| `PUT` | `/api/admin/users/:id` | Update a user (admin only) |
+| `DELETE` | `/api/admin/users/:id` | Delete a user (admin only) |
+| `GET` | `/api/collections` | List own collections |
 | `POST` | `/api/collections` | Create a collection |
 | `PUT` | `/api/collections/:id` | Update a collection |
 | `DELETE` | `/api/collections/:id` | Delete a collection |
@@ -85,12 +101,15 @@ CtrlTab will be available at `http://localhost:8090`.
 | `PUT` | `/api/links/:id` | Update a link |
 | `DELETE` | `/api/links/:id` | Delete a link |
 | `GET` | `/api/dashboard/:collectionId` | Full collection with sections and links |
-| `GET` | `/api/health` | Health check |
+| `GET` | `/api/health` | Health check (public) |
 
 ## Configuration
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `JWT_SECRET` | `please-change-this-secret` | Secret key for JWT signing (change in production!) |
+| `ADMIN_USERNAME` | `admin` | Initial admin username |
+| `ADMIN_PASSWORD` | `admin123` | Initial admin password |
 | `DB_PATH` | `/app/data/ctrltab.db` | Path to SQLite database file |
 | `NODE_ENV` | `production` | Node environment |
 
@@ -101,6 +120,7 @@ The default port is `8090`. Change it in `docker-compose.yml` under the `web` se
 - **Frontend:** Vanilla HTML, CSS, JavaScript (no frameworks, no build step)
   - Theme switcher with Light (default), Dark, and Cyberpunk themes
   - Fully responsive
+- **Auth:** JWT tokens, bcrypt password hashing, admin/user roles
 - **Backend:** Node.js, Express, better-sqlite3
 - **Database:** SQLite with WAL mode
 - **Proxy:** Nginx (Alpine)
@@ -114,7 +134,7 @@ The default port is `8090`. Change it in `docker-compose.yml` under the `web` se
 - [x] Theme switcher (Light / Dark / Cyberpunk)
 - [x] Improve offline mode (PWA)
 - [ ] New logo
-- [ ] User accounts and authentication
+- [x] User accounts and authentication
 - [ ] Drag & drop reordering
 - [ ] Search across all links
 - [ ] Import/export (JSON, HTML bookmarks)

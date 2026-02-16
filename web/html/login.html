@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Self-hosted link manager">
+    <title>Login - CtrlTab</title>
+    <link rel="icon" href="icons/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: var(--spacing-lg);
+        }
+
+        .login-box {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-bg-tertiary);
+            border-radius: 12px;
+            padding: var(--spacing-2xl);
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .login-logo {
+            font-size: 42px;
+            font-family: var(--font-display);
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        .login-logo .logo-accent {
+            color: var(--color-neon-pink);
+        }
+
+        [data-theme="cyberpunk"] .login-logo {
+            text-shadow: var(--glow-pink);
+        }
+
+        .login-subtitle {
+            color: var(--color-text-muted);
+            font-size: 14px;
+            margin-top: var(--spacing-xs);
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .login-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .login-error.visible {
+            display: block;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: var(--spacing-md);
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: var(--spacing-sm);
+        }
+    </style>
+    <script>
+        (function() {
+            var t = localStorage.getItem('ctrltab-theme');
+            if (t && t !== 'light') document.documentElement.dataset.theme = t;
+        })();
+    </script>
+</head>
+<body>
+    <div class="grid-background"></div>
+    <div class="scan-lines"></div>
+
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="login-logo">
+                    <span>Ctrl</span><span class="logo-accent">Tab</span>
+                </div>
+                <div class="login-subtitle">Link Manager</div>
+            </div>
+
+            <form class="login-form" id="loginForm">
+                <div id="loginError" class="login-error"></div>
+
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" name="username" required autofocus autocomplete="username">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" name="password" required autocomplete="current-password">
+                </div>
+
+                <button type="submit" class="btn-primary login-btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>

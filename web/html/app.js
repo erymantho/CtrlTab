@@ -33,7 +33,59 @@ function setTheme(theme) {
 // Apply theme immediately to prevent flash
 initTheme();
 
+// ═══════════════════════════════════════════════════════════════
+// Authentication
+// ═══════════════════════════════════════════════════════════════
+
 const API_BASE = '/api';
+let currentUser = null;
+
+function getAuthToken() {
+    return localStorage.getItem('ctrltab-token');
+}
+
+function getCurrentUser() {
+    if (currentUser) return currentUser;
+    const json = localStorage.getItem('ctrltab-user');
+    if (json) currentUser = JSON.parse(json);
+    return currentUser;
+}
+
+function isAdmin() {
+    const user = getCurrentUser();
+    return user && user.is_admin;
+}
+
+function logout() {
+    localStorage.removeItem('ctrltab-token');
+    localStorage.removeItem('ctrltab-user');
+    currentUser = null;
+    window.location.href = '/login.html';
+}
+
+async function checkAuth() {
+    const token = getAuthToken();
+    if (!token) {
+        window.location.href = '/login.html';
+        return false;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/auth/verify`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error('Invalid token');
+
+        const data = await res.json();
+        currentUser = data.user;
+        localStorage.setItem('ctrltab-user', JSON.stringify(data.user));
+        return true;
+    } catch {
+        logout();
+        return false;
+    }
+}
 
 // State
 let currentCollectionId = null;
@@ -61,13 +113,20 @@ const elements = {
 
 async function apiRequest(endpoint, options = {}) {
     try {
+        const token = getAuthToken();
         const response = await fetch(`${API_BASE}${endpoint}`, {
             headers: {
                 'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
                 ...options.headers,
             },
             ...options,
         });
+
+        if (response.status === 401 || response.status === 403) {
+            logout();
+            return;
+        }
 
         if (!response.ok) {
             const error = await response.json();
@@ -621,6 +680,273 @@ async function handleDeleteLink(linkId) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// Change Password
+// ═══════════════════════════════════════════════════════════════
+
+function showChangePasswordModal() {
+    document.getElementById('settingsDropdown').classList.remove('open');
+
+    showModal('Change Password', `
+        <form onsubmit="handleChangePassword(event)">
+            <div class="form-group">
+                <label class="form-label">Current Password</label>
+                <input type="password" class="form-input" name="currentPassword" required autofocus>
+            </div>
+            <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input type="password" class="form-input" name="newPassword" required minlength="6">
+                <small style="color: var(--color-text-muted); font-size: 12px;">Minimum 6 characters</small>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" class="form-input" name="confirmPassword" required minlength="6">
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="hideModal()">Cancel</button>
+                <button type="submit" class="btn-primary">Change Password</button>
+            </div>
+        </form>
+    `);
+}
+
+async function handleChangePassword(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const currentPassword = formData.get('currentPassword');
+    const newPassword = formData.get('newPassword');
+    const confirmPassword = formData.get('confirmPassword');
+
+    if (newPassword !== confirmPassword) {
+        alert('New passwords do not match');
+        return;
+    }
+
+    try {
+        showLoading();
+        await apiRequest('/auth/change-password', {
+            method: 'POST',
+            body: JSON.stringify({ currentPassword, newPassword })
+        });
+        hideLoading();
+        hideModal();
+        alert('Password changed successfully');
+    } catch (error) {
+        hideLoading();
+        alert('Failed to change password: ' + error.message);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Admin Panel
+// ═══════════════════════════════════════════════════════════════
+
+function initAdminPanel() {
+    const btn = document.getElementById('adminPanelBtn');
+    if (btn) {
+        btn.style.display = 'flex';
+        btn.addEventListener('click', showAdminPanel);
+    }
+}
+
+async function showAdminPanel() {
+    try {
+        showLoading();
+        const users = await apiRequest('/admin/users');
+        hideLoading();
+
+        const rows = users.map(user => `
+            <tr>
+                <td>${escapeHtml(user.username)}</td>
+                <td>
+                    <span class="badge ${user.is_admin ? 'badge-admin' : 'badge-user'}">
+                        ${user.is_admin ? 'Admin' : 'User'}
+                    </span>
+                </td>
+                <td style="font-size: 12px; color: var(--color-text-muted);">
+                    ${new Date(user.created_at).toLocaleDateString()}
+                </td>
+                <td>
+                    <div style="display: flex; gap: var(--spacing-sm);">
+                        <button class="btn-icon" onclick="showEditUserModal(${user.id})" title="Edit">
+                            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                                <path d="M11.333 2A1.886 1.886 0 0 1 14 4.667l-9 9-3.667 1 1-3.667 9-9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <button class="btn-icon btn-icon-danger" onclick="confirmDeleteUser(${user.id}, '${escapeHtml(user.username)}')" title="Delete">
+                            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                                <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4m2 0v9.333a1.333 1.333 0 0 1-1.334 1.334H4.667a1.333 1.333 0 0 1-1.334-1.334V4h9.334Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+
+        showModal('User Management', `
+            <div style="margin-bottom: var(--spacing-lg);">
+                <button class="btn-primary" onclick="showAddUserModal()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Add User
+                </button>
+            </div>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        `);
+    } catch (error) {
+        hideLoading();
+        alert('Failed to load users');
+    }
+}
+
+function showAddUserModal() {
+    showModal('Add User', `
+        <form onsubmit="handleAddUser(event)">
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" class="form-input" name="username" required autofocus>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" class="form-input" name="password" required minlength="6">
+                <small style="color: var(--color-text-muted); font-size: 12px;">Minimum 6 characters</small>
+            </div>
+            <div class="form-group">
+                <label class="form-label" style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                    <input type="checkbox" name="is_admin">
+                    Admin privileges
+                </label>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" onclick="showAdminPanel()">Back</button>
+                <button type="submit" class="btn-primary">Create User</button>
+            </div>
+        </form>
+    `);
+}
+
+async function handleAddUser(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+
+    try {
+        showLoading();
+        await apiRequest('/admin/users', {
+            method: 'POST',
+            body: JSON.stringify({
+                username: formData.get('username'),
+                password: formData.get('password'),
+                is_admin: formData.get('is_admin') === 'on'
+            })
+        });
+        hideLoading();
+        showAdminPanel();
+    } catch (error) {
+        hideLoading();
+        alert('Failed to create user: ' + error.message);
+    }
+}
+
+async function showEditUserModal(userId) {
+    try {
+        showLoading();
+        const users = await apiRequest('/admin/users');
+        const user = users.find(u => u.id === userId);
+        hideLoading();
+
+        if (!user) { alert('User not found'); return; }
+
+        showModal('Edit User', `
+            <form onsubmit="handleEditUser(event, ${userId})">
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-input" name="username" value="${escapeHtml(user.username)}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Password (leave empty to keep current)</label>
+                    <input type="password" class="form-input" name="password" minlength="6">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                        <input type="checkbox" name="is_admin" ${user.is_admin ? 'checked' : ''}>
+                        Admin privileges
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="showAdminPanel()">Back</button>
+                    <button type="submit" class="btn-primary">Save</button>
+                </div>
+            </form>
+        `);
+    } catch (error) {
+        hideLoading();
+        alert('Failed to load user');
+    }
+}
+
+async function handleEditUser(event, userId) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+
+    const data = {
+        username: formData.get('username'),
+        is_admin: formData.get('is_admin') === 'on'
+    };
+
+    const password = formData.get('password');
+    if (password) data.password = password;
+
+    try {
+        showLoading();
+        await apiRequest(`/admin/users/${userId}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+        hideLoading();
+        showAdminPanel();
+    } catch (error) {
+        hideLoading();
+        alert('Failed to update user: ' + error.message);
+    }
+}
+
+function confirmDeleteUser(userId, username) {
+    showModal('Delete User', `
+        <p style="margin-bottom: var(--spacing-lg); color: var(--color-text-secondary);">
+            Are you sure you want to delete "<strong>${escapeHtml(username)}</strong>"?
+            <br><br>
+            This will permanently delete all their collections, sections, and links.
+        </p>
+        <div class="form-actions">
+            <button type="button" class="btn-secondary" onclick="showAdminPanel()">Cancel</button>
+            <button type="button" class="btn-danger" onclick="handleDeleteUser(${userId})">Delete</button>
+        </div>
+    `);
+}
+
+async function handleDeleteUser(userId) {
+    try {
+        showLoading();
+        await apiRequest(`/admin/users/${userId}`, { method: 'DELETE' });
+        hideLoading();
+        showAdminPanel();
+    } catch (error) {
+        hideLoading();
+        alert('Failed to delete user: ' + error.message);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Utility Functions
 // ═══════════════════════════════════════════════════════════════
 
@@ -628,14 +954,6 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
-}
-
-function extractDomain(url) {
-    try {
-        return new URL(url).hostname;
-    } catch {
-        return url;
-    }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -683,4 +1001,10 @@ if ('serviceWorker' in navigator) {
 // Initialize
 // ═══════════════════════════════════════════════════════════════
 
-loadCollections();
+(async function init() {
+    const authenticated = await checkAuth();
+    if (!authenticated) return;
+
+    if (isAdmin()) initAdminPanel();
+    loadCollections();
+})();

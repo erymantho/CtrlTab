@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'ctrltab-v1';
+const CACHE_VERSION = 'ctrltab-v2';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -31,23 +31,25 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch: network-first for API, cache-first for static assets
+// Fetch: network-only for API (user-specific data), cache-first for static assets
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
 
+    // Never cache login page or login.js
+    if (url.pathname === '/login.html' || url.pathname === '/login.js') {
+        event.respondWith(fetch(event.request));
+        return;
+    }
+
     if (url.pathname.startsWith('/api/')) {
-        // Network-first for API calls
+        // Network-only for API calls (contains user-specific data)
         event.respondWith(
-            fetch(event.request)
-                .then(response => {
-                    if (response.ok) {
-                        const clone = response.clone();
-                        caches.open(CACHE_VERSION)
-                            .then(cache => cache.put(event.request, clone));
-                    }
-                    return response;
-                })
-                .catch(() => caches.match(event.request))
+            fetch(event.request).catch(() =>
+                new Response(
+                    JSON.stringify({ error: 'You are offline' }),
+                    { status: 503, headers: { 'Content-Type': 'application/json' } }
+                )
+            )
         );
     } else {
         // Cache-first for static assets
