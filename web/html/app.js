@@ -113,6 +113,7 @@ const elements = {
     modalClose: document.getElementById('modalClose'),
     modalBackdrop: document.getElementById('modalBackdrop'),
     loadingOverlay: document.getElementById('loadingOverlay'),
+    settingsBackBtn: document.getElementById('settingsBackBtn'),
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -287,9 +288,10 @@ async function selectCollection(id) {
     renderCollections();
     await loadDashboard(id);
 
-    // Show collection action buttons
+    // Show collection action buttons, hide settings back
     elements.editCollectionBtn.style.display = 'inline-flex';
     elements.addSectionBtn.style.display = 'inline-flex';
+    elements.settingsBackBtn.style.display = 'none';
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -304,6 +306,7 @@ function showSettings() {
     elements.collectionTitle.textContent = 'Settings';
     elements.editCollectionBtn.style.display = 'none';
     elements.addSectionBtn.style.display = 'none';
+    elements.settingsBackBtn.style.display = '';
 
     const currentTheme = localStorage.getItem('ctrltab-theme') || 'light';
     const user = getCurrentUser();
@@ -1118,6 +1121,11 @@ elements.modalBackdrop.addEventListener('click', hideModal);
 
 // Settings button
 document.getElementById('settingsBtn').addEventListener('click', showSettings);
+elements.settingsBackBtn.addEventListener('click', () => {
+    if (collections.length > 0) {
+        selectCollection(collections[0].id);
+    }
+});
 
 // Close modal on Escape key
 document.addEventListener('keydown', (e) => {

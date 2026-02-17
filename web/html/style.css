@@ -812,6 +812,10 @@ body {
     margin-bottom: 0;
 }
 
+.settings-back-btn {
+    flex-shrink: 0;
+}
+
 .settings-footer {
     font-size: 11px;
     color: var(--color-text-muted);
