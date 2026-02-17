@@ -363,11 +363,13 @@ function showSettings() {
     html += `
         <div class="settings-section">
             <h3 class="settings-section-title">Preferences</h3>
-            <label class="toggle-label">
-                <input type="checkbox" id="openNewTabCheckbox" ${openInNewTab ? 'checked' : ''} onchange="setOpenInNewTab(this.checked)">
-                <span class="toggle-track"></span>
+            <div class="toggle-label">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="openNewTabCheckbox" ${openInNewTab ? 'checked' : ''} onchange="setOpenInNewTab(this.checked)">
+                    <span class="toggle-track"></span>
+                </label>
                 <span>Open links in new tab</span>
-            </label>
+            </div>
         </div>
     `;
 
