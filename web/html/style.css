@@ -1113,7 +1113,7 @@ input:checked + .toggle-track::after {
     }
 
     .logo-img {
-        height: 36px;
+        height: 100px;
     }
 
     .collection-title {
