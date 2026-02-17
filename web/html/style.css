@@ -813,7 +813,6 @@ body {
 }
 
 .settings-footer {
-    text-align: center;
     font-size: 11px;
     color: var(--color-text-muted);
     letter-spacing: 0.03em;
