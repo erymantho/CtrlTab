@@ -37,7 +37,7 @@ A lightweight, self-hosted bookmark and link manager to organize your links into
 
 ```bash
 git clone https://github.com/erymantho/ctrltab.git
-cd ctrltab
+cd ctrlTAB
 
 # Set your credentials (or use defaults: admin / admin123)
 export JWT_SECRET="your-secret-key"
@@ -47,7 +47,7 @@ export ADMIN_PASSWORD="your-secure-password"
 docker compose up -d
 ```
 
-CtrlTab will be available at `http://localhost:8090`. Log in with your admin credentials.
+ctrlTAB will be available at `http://localhost:8090`. Log in with your admin credentials.
 
 ### Deploy with Portainer
 
