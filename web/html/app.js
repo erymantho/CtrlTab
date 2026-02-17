@@ -992,6 +992,7 @@ async function handleAddUser(event) {
             })
         });
         hideLoading();
+        hideModal();
         refreshUsersInSettings();
     } catch (error) {
         hideLoading();
@@ -1081,6 +1082,7 @@ async function handleDeleteUser(userId) {
         showLoading();
         await apiRequest(`/admin/users/${userId}`, { method: 'DELETE' });
         hideLoading();
+        hideModal();
         refreshUsersInSettings();
     } catch (error) {
         hideLoading();
