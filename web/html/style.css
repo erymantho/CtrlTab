@@ -1586,18 +1586,61 @@ body {
     color: var(--color-text-primary);
 }
 
-/* Settings checkbox */
-.settings-checkbox {
+/* Toggle switch */
+.toggle-label {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-md);
     font-size: 14px;
     color: var(--color-text-secondary);
     cursor: pointer;
 }
 
-.settings-checkbox input[type="checkbox"] {
-    cursor: pointer;
+.toggle-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.toggle-track {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-text-muted);
+    border-radius: 0;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: var(--color-text-muted);
+    border-radius: 0;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+input:checked + .toggle-track {
+    background: var(--color-neon-cyan);
+    border-color: var(--color-neon-cyan);
+}
+
+input:checked + .toggle-track::after {
+    transform: translateX(18px);
+    background: #fff;
+}
+
+[data-theme="cyberpunk"] .toggle-track {
+    border-color: var(--color-neon-purple);
+}
+
+[data-theme="cyberpunk"] input:checked + .toggle-track {
+    box-shadow: 0 0 8px var(--color-neon-cyan);
 }
 
 /* Account actions */
