@@ -109,13 +109,28 @@ All data endpoints require a valid JWT token via `Authorization: Bearer <token>`
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `JWT_SECRET` | `please-change-this-secret` | Secret key for JWT signing (change in production!) |
+| `JWT_SECRET` | `please-change-this-secret` | Secret key for JWT signing (change in production! see below) |
 | `ADMIN_USERNAME` | `admin` | Initial admin username |
 | `ADMIN_PASSWORD` | `admin123` | Initial admin password |
 | `DB_PATH` | `/app/data/ctrltab.db` | Path to SQLite database file |
 | `NODE_ENV` | `production` | Node environment |
 
 The default port is `8090`. Change it in `docker-compose.yml` under the `web` service.
+
+### Generating a JWT Secret
+
+For production, generate a secure random secret:
+
+```bash
+openssl rand -hex 32
+```
+
+Then use it when deploying:
+
+```bash
+export JWT_SECRET="your-generated-secret-here"
+docker compose up -d
+```
 
 ## Tech Stack
 
