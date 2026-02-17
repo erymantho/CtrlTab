@@ -79,7 +79,11 @@ async function seedAdmin() {
     // Assign any orphaned collections to admin
     db.prepare('UPDATE collections SET user_id = ? WHERE user_id IS NULL').run(result.lastInsertRowid);
   } else {
-    // Update admin password if env var changed
+    // Update admin username and password if env vars changed
+    if (existing.username !== ADMIN_USERNAME) {
+      console.log(`Updating admin username from environment: ${ADMIN_USERNAME}`);
+      db.prepare('UPDATE users SET username = ? WHERE id = ?').run(ADMIN_USERNAME, existing.id);
+    }
     const match = await bcrypt.compare(ADMIN_PASSWORD, existing.password_hash);
     if (!match) {
       console.log('Updating admin password from environment...');
