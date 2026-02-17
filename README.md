@@ -150,4 +150,4 @@ MIT — do whatever you want with it.
 
 ---
 
-*Built with ☕ and `sudo` privileges.* lol
+*Built with ☕ and `sudo` privileges.*
