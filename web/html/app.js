@@ -408,6 +408,12 @@ function showSettings() {
         </div>
     `;
 
+    html += `
+        <div class="settings-footer">
+            ctrlTAB by Michael Smith
+        </div>
+    `;
+
     elements.sectionsContainer.innerHTML = html;
 
     // Load users table if admin
