@@ -321,66 +321,10 @@ app.delete('/api/sections/:id', authenticateToken, (req, res) => {
 });
 
 // ─── Favicon Helper ──────────────────────────────────────────────
-function isPrivateUrl(parsed) {
-  const hostname = parsed.hostname;
-  if (hostname === 'localhost') return true;
-  const ipv4 = hostname.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
-  if (ipv4) {
-    const [, a, b] = ipv4.map(Number);
-    if (a === 10) return true;
-    if (a === 172 && b >= 16 && b <= 31) return true;
-    if (a === 192 && b === 168) return true;
-    if (a === 127) return true;
-  }
-  return false;
-}
-
-async function fetchFavicon(siteUrl) {
+function fetchFavicon(siteUrl) {
   try {
-    const parsed = new URL(siteUrl);
-    const isPrivate = isPrivateUrl(parsed);
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3000);
-
-    try {
-      const response = await fetch(siteUrl, {
-        signal: controller.signal,
-        headers: { 'User-Agent': 'CtrlTab/1.0' }
-      });
-      clearTimeout(timeout);
-
-      if (response.ok) {
-        const html = await response.text();
-        const iconMatch = html.match(/<link[^>]*rel=["'](?:shortcut )?icon["'][^>]*href=["']([^"']+)["'][^>]*>/i)
-          || html.match(/<link[^>]*href=["']([^"']+)["'][^>]*rel=["'](?:shortcut )?icon["'][^>]*>/i);
-
-        if (iconMatch) {
-          return new URL(iconMatch[1], siteUrl).href;
-        }
-      }
-    } catch {
-      clearTimeout(timeout);
-    }
-
-    // For private/local URLs: skip HEAD check and Google fallback.
-    // Return the direct favicon.ico URL so the browser can try it directly.
-    if (isPrivate) {
-      return `${parsed.origin}/favicon.ico`;
-    }
-
-    try {
-      const icoUrl = `${parsed.origin}/favicon.ico`;
-      const icoController = new AbortController();
-      const icoTimeout = setTimeout(() => icoController.abort(), 2000);
-      const icoResponse = await fetch(icoUrl, { method: 'HEAD', signal: icoController.signal });
-      clearTimeout(icoTimeout);
-      if (icoResponse.ok) return icoUrl;
-    } catch {
-      // ignore
-    }
-
-    return `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=32`;
+    const { hostname } = new URL(siteUrl);
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
   } catch {
     return null;
   }
@@ -394,34 +338,25 @@ app.get('/api/sections/:sectionId/links', authenticateToken, (req, res) => {
   res.json(links);
 });
 
-app.post('/api/sections/:sectionId/links', authenticateToken, async (req, res) => {
+app.post('/api/sections/:sectionId/links', authenticateToken, (req, res) => {
   if (!ownsSection(req.params.sectionId, req.user.id)) return res.status(404).json({ error: 'Not found' });
 
   const { title, url, favicon } = req.body;
   if (!title || !url) return res.status(400).json({ error: 'title and url are required' });
 
-  const faviconUrl = favicon || await fetchFavicon(url);
+  const faviconUrl = favicon || fetchFavicon(url);
   const maxOrder = db.prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 AS next FROM links WHERE section_id = ?').get(req.params.sectionId);
   const result = db.prepare('INSERT INTO links (section_id, title, url, favicon, sort_order) VALUES (?, ?, ?, ?, ?)').run(req.params.sectionId, title, url, faviconUrl, maxOrder.next);
   const link = db.prepare('SELECT * FROM links WHERE id = ?').get(result.lastInsertRowid);
   res.status(201).json(link);
 });
 
-app.put('/api/links/:id', authenticateToken, async (req, res) => {
+app.put('/api/links/:id', authenticateToken, (req, res) => {
   if (!ownsLink(req.params.id, req.user.id)) return res.status(404).json({ error: 'Not found' });
 
   const { title, url, favicon, sort_order } = req.body;
-
-  let newFavicon = favicon ?? null;
-  if (url && !favicon) {
-    const existing = db.prepare('SELECT url FROM links WHERE id = ?').get(req.params.id);
-    if (existing && existing.url !== url) {
-      newFavicon = await fetchFavicon(url);
-    }
-  }
-
   db.prepare('UPDATE links SET title = COALESCE(?, title), url = COALESCE(?, url), favicon = COALESCE(?, favicon), sort_order = COALESCE(?, sort_order) WHERE id = ?')
-    .run(title, url, newFavicon, sort_order, req.params.id);
+    .run(title, url, favicon ?? null, sort_order, req.params.id);
   const link = db.prepare('SELECT * FROM links WHERE id = ?').get(req.params.id);
   res.json(link);
 });

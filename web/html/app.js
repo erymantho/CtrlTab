@@ -547,14 +547,6 @@ function renderSections(sections) {
             </div>
         `)
         .join('');
-
-    // Hide favicon imgs that fail to load within 4 seconds (prevents infinite browser spinner)
-    elements.sectionsContainer.querySelectorAll('.link-favicon-img').forEach(img => {
-        if (img.complete) return;
-        const timer = setTimeout(() => { img.style.display = 'none'; }, 4000);
-        img.addEventListener('load', () => clearTimeout(timer));
-        img.addEventListener('error', () => clearTimeout(timer));
-    });
 }
 
 function renderLinks(links) {
@@ -567,7 +559,7 @@ function renderLinks(links) {
         .map(link => `
             <a href="${escapeHtml(link.url)}"${target} class="link-card">
                 <div class="link-favicon">
-                    ${link.favicon ? `<img src="${escapeHtml(link.favicon)}" alt="" class="link-favicon-img" onerror="this.style.display='none'">` : ''}
+                    ${link.favicon ? `<img src="${escapeHtml(link.favicon)}" alt="" onerror="this.style.display='none'">` : ''}
                 </div>
                 <div class="link-content">
                     <div class="link-title">${escapeHtml(link.title)}</div>
