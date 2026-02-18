@@ -342,11 +342,6 @@ body {
     padding-bottom: var(--spacing-md);
     border-bottom: 1px solid var(--color-bg-tertiary);
     position: relative;
-    cursor: grab;
-}
-
-.section-header:active {
-    cursor: grabbing;
 }
 
 .section-header::after {
