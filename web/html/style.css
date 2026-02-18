@@ -127,7 +127,7 @@ body {
 }
 
 .sidebar-header {
-    padding: 0 var(--spacing-lg);
+    padding: var(--spacing-xl) var(--spacing-lg);
     border-bottom: 1px solid var(--color-bg-tertiary);
 }
 
@@ -136,18 +136,18 @@ body {
     cursor: pointer;
 }
 
-.logo-svg {
-    height: 150px;
-    width: auto;
-    display: block;
+.logo-text {
+    font-family: var(--font-mono);
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--color-text-primary);
+    user-select: none;
 }
 
-.logo-svg .logo-main  { fill: #231f1d; }
-.logo-svg .logo-accent { fill: var(--color-accent); }
-
-[data-theme="dark"] .logo-svg .logo-main,
-[data-theme="cyberpunk"] .logo-svg .logo-main {
-    fill: var(--color-text-primary);
+.logo-text .logo-accent {
+    color: var(--color-accent);
 }
 
 .subtitle {
