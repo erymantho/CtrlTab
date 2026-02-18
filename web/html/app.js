@@ -308,6 +308,13 @@ async function deleteLink(id) {
     });
 }
 
+async function reorderLinks(sectionId, orderedIds) {
+    return apiRequest(`/sections/${sectionId}/links/reorder`, {
+        method: 'PUT',
+        body: JSON.stringify({ order: orderedIds }),
+    });
+}
+
 async function uploadIcon(file) {
     const formData = new FormData();
     formData.append('icon', file);
@@ -639,6 +646,7 @@ async function loadDashboard(collectionId) {
 
         elements.collectionTitle.textContent = data.name;
         renderSections(data.sections || []);
+        initDragAndDrop();
     } catch (error) {
         console.error('Failed to load dashboard:', error);
         elements.sectionsContainer.innerHTML = `
@@ -669,6 +677,13 @@ function renderSections(sections) {
                 <div class="section-header">
                     <h3 class="section-title">${escapeHtml(section.name)}</h3>
                     <div class="section-actions">
+                        ${(section.links || []).length > 1 ? `
+                        <button class="btn-icon" onclick="sortSectionAlpha(${section.id})" title="Sort A-Z">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M2 4h7M2 8h5M2 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                <path d="M11 3l2 2 2-2M13 5V13M11 11l2 2 2-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>` : ''}
                         <button class="btn-icon" onclick="showAddLinkModal(${section.id})" title="Add link">
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                 <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -681,8 +696,8 @@ function renderSections(sections) {
                         </button>
                     </div>
                 </div>
-                <div class="links-grid">
-                    ${renderLinks(section.links || [])}
+                <div class="links-grid" data-section-id="${section.id}">
+                    ${renderLinks(section.links || [], section.id)}
                 </div>
             </div>
         `)
@@ -703,7 +718,7 @@ function getFaviconSrc(link) {
     return null;
 }
 
-function renderLinks(links) {
+function renderLinks(links, sectionId) {
     if (links.length === 0) {
         return '<p style="color: var(--color-text-muted); font-size: 14px;">No links yet</p>';
     }
@@ -713,7 +728,7 @@ function renderLinks(links) {
         .map(link => {
             const faviconSrc = getFaviconSrc(link);
             return `
-            <a href="${escapeHtml(link.url)}"${target} class="link-card">
+            <a href="${escapeHtml(link.url)}"${target} class="link-card" draggable="true" data-link-id="${link.id}">
                 <div class="link-favicon">
                     ${faviconSrc ? `<img src="${escapeHtml(faviconSrc)}" alt="" onerror="this.style.display='none'">` : ''}
                 </div>
@@ -731,6 +746,68 @@ function renderLinks(links) {
         `;
         })
         .join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Drag-and-Drop Link Reordering
+// ═══════════════════════════════════════════════════════════════
+
+let _draggingCard = null;
+
+function initDragAndDrop() {
+    _draggingCard = null;
+
+    document.querySelectorAll('.links-grid').forEach(grid => {
+        grid.addEventListener('dragstart', e => {
+            const card = e.target.closest('.link-card[data-link-id]');
+            if (!card) return;
+            _draggingCard = card;
+            card.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        });
+
+        grid.addEventListener('dragover', e => {
+            e.preventDefault();
+            if (!_draggingCard) return;
+            const after = getDragAfterElement(grid, e.clientX, e.clientY);
+            if (after) grid.insertBefore(_draggingCard, after);
+            else grid.appendChild(_draggingCard);
+        });
+
+        grid.addEventListener('dragend', async () => {
+            if (!_draggingCard) return;
+            _draggingCard.classList.remove('dragging');
+            const sectionId = parseInt(grid.dataset.sectionId);
+            const orderedIds = [...grid.querySelectorAll('.link-card[data-link-id]')]
+                .map(el => parseInt(el.dataset.linkId));
+            _draggingCard = null;
+            await reorderLinks(sectionId, orderedIds);
+        });
+    });
+}
+
+function getDragAfterElement(grid, x, y) {
+    const cards = [...grid.querySelectorAll('.link-card:not(.dragging)')];
+    return cards.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offsetY = y - box.top - box.height / 2;
+        if (offsetY < 0 && offsetY > closest.offset) return { offset: offsetY, element: child };
+        return closest;
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+async function sortSectionAlpha(sectionId) {
+    const grid = document.querySelector(`.links-grid[data-section-id="${sectionId}"]`);
+    if (!grid) return;
+    const cards = [...grid.querySelectorAll('.link-card[data-link-id]')];
+    cards.sort((a, b) =>
+        a.querySelector('.link-title').textContent.localeCompare(
+            b.querySelector('.link-title').textContent, undefined, { sensitivity: 'base' }
+        )
+    );
+    cards.forEach(card => grid.appendChild(card));
+    const orderedIds = cards.map(card => parseInt(card.dataset.linkId));
+    await reorderLinks(sectionId, orderedIds);
 }
 
 // ═══════════════════════════════════════════════════════════════

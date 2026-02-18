@@ -15,9 +15,12 @@ A lightweight, self-hosted bookmark and link manager to organize your links into
 
 - 📁 **Collections** — Group your links by project, client, or topic
 - 📑 **Sections** — Organize links within collections under named headings
-- 🔗 **Links** — Store URLs with auto-fetched favicons
+- 🔗 **Links** — Store URLs with auto-fetched favicons (including local/private network apps)
+- 🖼️ **Custom Icons** — Upload your own PNG, SVG, or ICO as a link icon
 - 🎨 **Themes** — Light (default), Dark, and Neon Cyberpunk with grid backgrounds, scan lines, and RGB glow effects
-- ⚙️ **Settings Page** — Dedicated settings view with theme switcher, account management, and admin user management
+- 🎨 **Accent Color** — Per-user accent color with preset palette and custom color picker, saved server-side
+- ↕️ **Drag & Drop** — Reorder links within a section by dragging; reset to A-Z with one click
+- ⚙️ **Settings Page** — Dedicated settings view with theme switcher, accent color picker, account management, and admin user management
 - 👤 **User Accounts** — Multi-user with admin panel, JWT authentication, and per-user data isolation
 - ⚡ **Full CRUD** — Create, read, update, and delete all resources through an intuitive dashboard
 - 🐳 **Docker-ready** — Runs as a two-container stack (API + Nginx)
@@ -86,6 +89,8 @@ All data endpoints require a valid JWT token via `Authorization: Bearer <token>`
 | `POST` | `/api/auth/login` | Login, returns JWT token |
 | `GET` | `/api/auth/verify` | Verify token validity |
 | `POST` | `/api/auth/change-password` | Change own password |
+| `GET` | `/api/auth/preferences` | Get current user preferences |
+| `PUT` | `/api/auth/preferences` | Update current user preferences |
 | `GET` | `/api/admin/users` | List all users (admin only) |
 | `POST` | `/api/admin/users` | Create a user (admin only) |
 | `PUT` | `/api/admin/users/:id` | Update a user (admin only) |
@@ -102,6 +107,8 @@ All data endpoints require a valid JWT token via `Authorization: Bearer <token>`
 | `POST` | `/api/sections/:id/links` | Create a link |
 | `PUT` | `/api/links/:id` | Update a link |
 | `DELETE` | `/api/links/:id` | Delete a link |
+| `PUT` | `/api/sections/:id/links/reorder` | Reorder links within a section |
+| `POST` | `/api/upload/icon` | Upload a custom link icon (PNG/SVG/ICO) |
 | `GET` | `/api/dashboard/:collectionId` | Full collection with sections and links |
 | `GET` | `/api/health` | Health check (public) |
 
@@ -147,12 +154,14 @@ docker compose up -d
 
 - [x] Dashboard frontend UI
 - [x] Full CRUD for collections, sections, and links
-- [x] Auto-fetched favicons
+- [x] Auto-fetched favicons (including local/private network apps)
+- [x] Custom icon upload (PNG, SVG, ICO)
 - [x] Theme switcher (Light / Dark / Cyberpunk)
+- [x] Per-user accent color with preset palette and custom picker
 - [x] Improve offline mode (PWA)
 - [x] New logo
 - [x] User accounts and authentication
-- [ ] Drag & drop reordering
+- [x] Drag & drop reordering of links (with A-Z sort button per section)
 - [ ] Search across all links
 - [ ] Import/export (JSON, HTML bookmarks)
 - [ ] Tags and filtering

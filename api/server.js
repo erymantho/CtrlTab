@@ -468,6 +468,19 @@ app.delete('/api/links/:id', authenticateToken, (req, res) => {
   res.json({ deleted: true });
 });
 
+app.put('/api/sections/:sectionId/links/reorder', authenticateToken, (req, res) => {
+  if (!ownsSection(req.params.sectionId, req.user.id)) return res.status(404).json({ error: 'Not found' });
+
+  const { order } = req.body;
+  if (!Array.isArray(order)) return res.status(400).json({ error: 'order must be an array' });
+
+  const update = db.prepare('UPDATE links SET sort_order = ? WHERE id = ? AND section_id = ?');
+  db.transaction(() => {
+    order.forEach((id, index) => update.run(index, id, req.params.sectionId));
+  })();
+  res.json({ ok: true });
+});
+
 // ─── Full dashboard endpoint ─────────────────────────────────────
 app.get('/api/dashboard/:collectionId', authenticateToken, (req, res) => {
   const collection = db.prepare('SELECT * FROM collections WHERE id = ? AND user_id = ?').get(req.params.collectionId, req.user.id);
