@@ -321,9 +321,24 @@ app.delete('/api/sections/:id', authenticateToken, (req, res) => {
 });
 
 // ─── Favicon Helper ──────────────────────────────────────────────
+function isPrivateUrl(parsed) {
+  const hostname = parsed.hostname;
+  if (hostname === 'localhost') return true;
+  const ipv4 = hostname.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (ipv4) {
+    const [, a, b] = ipv4.map(Number);
+    if (a === 10) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 127) return true;
+  }
+  return false;
+}
+
 async function fetchFavicon(siteUrl) {
   try {
     const parsed = new URL(siteUrl);
+    const isPrivate = isPrivateUrl(parsed);
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
@@ -346,6 +361,12 @@ async function fetchFavicon(siteUrl) {
       }
     } catch {
       clearTimeout(timeout);
+    }
+
+    // For private/local URLs: skip HEAD check and Google fallback.
+    // Return the direct favicon.ico URL so the browser can try it directly.
+    if (isPrivate) {
+      return `${parsed.origin}/favicon.ico`;
     }
 
     try {
