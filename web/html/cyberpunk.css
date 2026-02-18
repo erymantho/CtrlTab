@@ -724,6 +724,48 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   Collection Switch — Cyberpunk overrides
+   ═══════════════════════════════════════════════════════════════ */
+
+[data-theme="cyberpunk"] .sections-container.sections-exit {
+    animation: cpSectionsExit 0.18s steps(1) forwards;
+}
+
+@keyframes cpSectionsExit {
+    0%   { opacity: 1; filter: none; transform: none; }
+    33%  { filter: brightness(3) hue-rotate(90deg); transform: translateX(-12px); }
+    66%  { filter: brightness(0); transform: translateX(8px); }
+    100% { opacity: 0; filter: none; transform: none; }
+}
+
+[data-theme="cyberpunk"] .sections-container.sections-enter {
+    animation: cpSectionsEnter 0.5s ease-out;
+}
+
+@keyframes cpSectionsEnter {
+    0%   { opacity: 0; filter: brightness(4) saturate(0); transform: translateX(-18px); }
+    18%  { opacity: 1; filter: hue-rotate(120deg) saturate(6) brightness(2); transform: translateX(12px); }
+    35%  { filter: none; transform: translateX(-6px); }
+    50%  { filter: brightness(1.5) saturate(2); transform: translateX(4px); }
+    65%  { filter: none; transform: translateX(-2px); }
+    80%  { transform: translateX(1px); }
+    100% { filter: none; transform: none; }
+}
+
+[data-theme="cyberpunk"] .collection-title.title-flash {
+    animation: cpTitleFlash 0.45s steps(1);
+}
+
+@keyframes cpTitleFlash {
+    0%   { opacity: 0; text-shadow: none; transform: translateX(-10px); }
+    20%  { opacity: 1; text-shadow: 6px 0 #ff006e, -6px 0 #00f5ff; transform: translateX(8px); }
+    40%  { text-shadow: -4px 0 #ff006e, 4px 0 #00f5ff; transform: translateX(-4px); }
+    60%  { text-shadow: var(--glow-highlight); transform: translateX(2px); }
+    80%  { text-shadow: var(--glow-highlight); transform: none; }
+    100% { text-shadow: var(--glow-highlight); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    Theme Transition — Cyberpunk Boot & Shutdown
    ═══════════════════════════════════════════════════════════════ */
 

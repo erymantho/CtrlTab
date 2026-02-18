@@ -421,6 +421,7 @@ function goHome() {
 }
 
 async function selectCollection(id) {
+    elements.sectionsContainer.classList.add('sections-exit');
     currentView = 'collections';
     currentCollectionId = id;
     localStorage.setItem('ctrltab-last-collection', id);
@@ -663,6 +664,8 @@ async function loadDashboard(collectionId) {
         const data = await getDashboard(collectionId);
 
         elements.collectionTitle.textContent = data.name;
+        elements.collectionTitle.classList.add('title-flash');
+        setTimeout(() => elements.collectionTitle.classList.remove('title-flash'), 500);
         renderSections(data.sections || []);
         initDragAndDrop();
     } catch (error) {
@@ -679,6 +682,8 @@ async function loadDashboard(collectionId) {
 }
 
 function renderSections(sections) {
+    elements.sectionsContainer.classList.remove('sections-exit');
+
     if (sections.length === 0) {
         elements.sectionsContainer.innerHTML = `
             <div class="empty-state">
@@ -686,6 +691,8 @@ function renderSections(sections) {
                 <p>No sections yet. Click "Add Section" to get started.</p>
             </div>
         `;
+        elements.sectionsContainer.classList.add('sections-enter');
+        setTimeout(() => elements.sectionsContainer.classList.remove('sections-enter'), 600);
         return;
     }
 
@@ -726,6 +733,9 @@ function renderSections(sections) {
         `;
         })
         .join('');
+
+    elements.sectionsContainer.classList.add('sections-enter');
+    setTimeout(() => elements.sectionsContainer.classList.remove('sections-enter'), 600);
 }
 
 function getFaviconSrc(link) {
