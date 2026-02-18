@@ -228,6 +228,7 @@ async function deleteLink(id) {
 let loadingTimer = null;
 
 function showLoading() {
+    clearTimeout(loadingTimer);
     loadingTimer = setTimeout(() => {
         elements.loadingOverlay.classList.add('active');
     }, 150);
