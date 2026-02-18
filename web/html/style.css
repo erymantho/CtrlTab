@@ -127,7 +127,7 @@ body {
 }
 
 .sidebar-header {
-    padding: var(--spacing-xl) var(--spacing-lg);
+    padding: var(--spacing-2xl) var(--spacing-lg);
     border-bottom: 1px solid var(--color-bg-tertiary);
 }
 
@@ -138,7 +138,7 @@ body {
 
 .logo-text {
     font-family: 'Press Start 2P', var(--font-mono);
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 400;
     letter-spacing: 0;
     line-height: 1.4;
