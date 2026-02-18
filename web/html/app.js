@@ -479,7 +479,7 @@ function showSettings() {
                     <span class="theme-card-label">Cyberpunk</span>
                 </button>
             </div>
-            <div class="accent-color-section">
+            ${currentTheme !== 'cyberpunk' ? `<div class="accent-color-section">
                 <span class="accent-color-label">Accent color</span>
                 <div class="accent-presets">
                     ${(() => {
@@ -509,7 +509,7 @@ function showSettings() {
                         `;
                     })()}
                 </div>
-            </div>
+            </div>` : ''}
         </div>
     `;
 
