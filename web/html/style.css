@@ -137,11 +137,11 @@ body {
 }
 
 .logo-text {
-    font-family: var(--font-mono);
-    font-size: 32px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1;
+    font-family: 'Press Start 2P', var(--font-mono);
+    font-size: 18px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.4;
     color: var(--color-text-primary);
     user-select: none;
 }
