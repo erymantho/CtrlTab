@@ -2,8 +2,11 @@ const express = require('express');
 const Database = require('better-sqlite3');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = 3000;
@@ -11,10 +14,30 @@ const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'ctrltab.db'
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const UPLOADS_DIR = path.join(path.dirname(DB_PATH), 'uploads');
+
+fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: UPLOADS_DIR,
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      cb(null, `${crypto.randomUUID()}${ext}`);
+    }
+  }),
+  limits: { fileSize: 512 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.png', '.svg', '.ico'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, allowed.includes(ext));
+  }
+});
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/api/uploads', express.static(UPLOADS_DIR));
 
 // ─── Database Setup ───────────────────────────────────────────────
 const db = new Database(DB_PATH);
@@ -331,15 +354,39 @@ function isPrivateHostname(hostname) {
   return false;
 }
 
-function fetchFavicon(siteUrl) {
+async function fetchFavicon(siteUrl) {
   try {
-    const { hostname } = new URL(siteUrl);
-    if (isPrivateHostname(hostname)) return null;
+    const parsed = new URL(siteUrl);
+    const { hostname } = parsed;
+
+    if (isPrivateHostname(hostname)) {
+      // Try to parse the real favicon from the HTML for local apps
+      try {
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), 2000);
+        const res = await fetch(siteUrl, { signal: controller.signal, headers: { 'User-Agent': 'CtrlTab/1.0' } });
+        if (res.ok) {
+          const html = await res.text();
+          const match = html.match(/<link[^>]*rel=["'](?:shortcut )?icon["'][^>]*href=["']([^"']+)["'][^>]*/i)
+            || html.match(/<link[^>]*href=["']([^"']+)["'][^>]*rel=["'](?:shortcut )?icon["'][^>]*/i);
+          if (match) return new URL(match[1], siteUrl).href;
+        }
+      } catch { /* server can't reach local app, browser will try favicon.ico */ }
+      return null;
+    }
+
     return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
   } catch {
     return null;
   }
 }
+
+// ─── Icon Upload ──────────────────────────────────────────────────
+app.post('/api/upload/icon', authenticateToken, upload.single('icon'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No valid file uploaded (png, svg, ico, max 512KB)' });
+  const url = `/api/uploads/${req.file.filename}`;
+  res.json({ url });
+});
 
 // ─── Links ────────────────────────────────────────────────────────
 app.get('/api/sections/:sectionId/links', authenticateToken, (req, res) => {
@@ -349,25 +396,35 @@ app.get('/api/sections/:sectionId/links', authenticateToken, (req, res) => {
   res.json(links);
 });
 
-app.post('/api/sections/:sectionId/links', authenticateToken, (req, res) => {
+app.post('/api/sections/:sectionId/links', authenticateToken, async (req, res) => {
   if (!ownsSection(req.params.sectionId, req.user.id)) return res.status(404).json({ error: 'Not found' });
 
   const { title, url, favicon } = req.body;
   if (!title || !url) return res.status(400).json({ error: 'title and url are required' });
 
-  const faviconUrl = favicon || fetchFavicon(url);
+  const faviconUrl = favicon || await fetchFavicon(url);
   const maxOrder = db.prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 AS next FROM links WHERE section_id = ?').get(req.params.sectionId);
   const result = db.prepare('INSERT INTO links (section_id, title, url, favicon, sort_order) VALUES (?, ?, ?, ?, ?)').run(req.params.sectionId, title, url, faviconUrl, maxOrder.next);
   const link = db.prepare('SELECT * FROM links WHERE id = ?').get(result.lastInsertRowid);
   res.status(201).json(link);
 });
 
-app.put('/api/links/:id', authenticateToken, (req, res) => {
+app.put('/api/links/:id', authenticateToken, async (req, res) => {
   if (!ownsLink(req.params.id, req.user.id)) return res.status(404).json({ error: 'Not found' });
 
   const { title, url, favicon, sort_order } = req.body;
+
+  // favicon explicitly provided → use it; URL changed and no favicon → re-fetch
+  let newFavicon = favicon ?? null;
+  if (url && favicon === undefined) {
+    const existing = db.prepare('SELECT url FROM links WHERE id = ?').get(req.params.id);
+    if (existing && existing.url !== url) {
+      newFavicon = await fetchFavicon(url);
+    }
+  }
+
   db.prepare('UPDATE links SET title = COALESCE(?, title), url = COALESCE(?, url), favicon = COALESCE(?, favicon), sort_order = COALESCE(?, sort_order) WHERE id = ?')
-    .run(title, url, favicon ?? null, sort_order, req.params.id);
+    .run(title, url, newFavicon, sort_order, req.params.id);
   const link = db.prepare('SELECT * FROM links WHERE id = ?').get(req.params.id);
   res.json(link);
 });

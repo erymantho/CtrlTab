@@ -221,6 +221,18 @@ async function deleteLink(id) {
     });
 }
 
+async function uploadIcon(file) {
+    const formData = new FormData();
+    formData.append('icon', file);
+    const res = await fetch('/api/upload/icon', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${getToken()}` },
+        body: formData,
+    });
+    if (!res.ok) throw new Error('Upload failed');
+    return (await res.json()).url;
+}
+
 // ═══════════════════════════════════════════════════════════════
 // UI Functions
 // ═══════════════════════════════════════════════════════════════
@@ -585,7 +597,7 @@ function renderLinks(links) {
                     <div class="link-title">${escapeHtml(link.title)}</div>
                 </div>
                 <div class="link-actions" onclick="event.preventDefault(); event.stopPropagation();">
-                    <button class="btn-icon" onclick="showEditLinkModal(${link.id}, ${link.section_id}, '${escapeHtml(link.title)}', '${escapeHtml(link.url)}')" title="Edit link">
+                    <button class="btn-icon" onclick="showEditLinkModal(${link.id}, ${link.section_id}, '${escapeHtml(link.title)}', '${escapeHtml(link.url)}', '${escapeHtml(link.favicon || '')}')" title="Edit link">
                         <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                             <path d="M11.333 2A1.886 1.886 0 0 1 14 4.667l-9 9-3.667 1 1-3.667 9-9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -820,6 +832,30 @@ async function handleDeleteSection(sectionId) {
 // Modal Actions - Links
 // ═══════════════════════════════════════════════════════════════
 
+function faviconFormGroup(currentValue = '') {
+    return `
+        <div class="form-group">
+            <label class="form-label">Custom icon <span style="opacity:0.5;font-weight:400;">(optional)</span></label>
+            <div class="favicon-input-row">
+                <input type="url" class="form-input" name="favicon" id="faviconUrlInput" value="${escapeHtml(currentValue)}" placeholder="Leave empty to detect automatically">
+                <button type="button" class="btn-secondary" onclick="document.getElementById('faviconFileInput').click()">Upload</button>
+                <input type="file" id="faviconFileInput" accept=".png,.svg,.ico" style="display:none" onchange="handleIconUpload(this)">
+            </div>
+        </div>`;
+}
+
+async function handleIconUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    try {
+        const url = await uploadIcon(file);
+        document.getElementById('faviconUrlInput').value = url;
+    } catch {
+        alert('Failed to upload icon');
+    }
+    input.value = '';
+}
+
 function showAddLinkModal(sectionId) {
     showModal('Add Link', `
         <form onsubmit="handleAddLink(event, ${sectionId})">
@@ -831,6 +867,7 @@ function showAddLinkModal(sectionId) {
                 <label class="form-label">URL</label>
                 <input type="url" class="form-input" name="url" placeholder="https://github.com" required>
             </div>
+            ${faviconFormGroup()}
             <div class="form-actions">
                 <button type="button" class="btn-secondary" onclick="hideModal()">Cancel</button>
                 <button type="submit" class="btn-primary">Create</button>
@@ -844,10 +881,11 @@ async function handleAddLink(event, sectionId) {
     const formData = new FormData(event.target);
     const title = formData.get('title');
     const url = formData.get('url');
+    const favicon = formData.get('favicon') || undefined;
 
     try {
         showLoading();
-        await createLink(sectionId, { title, url });
+        await createLink(sectionId, { title, url, favicon });
         await loadDashboard(currentCollectionId);
         hideModal();
     } catch (error) {
@@ -857,7 +895,7 @@ async function handleAddLink(event, sectionId) {
     }
 }
 
-function showEditLinkModal(linkId, sectionId, currentTitle, currentUrl) {
+function showEditLinkModal(linkId, sectionId, currentTitle, currentUrl, currentFavicon) {
     showModal('Edit Link', `
         <form onsubmit="handleEditLink(event, ${linkId})">
             <div class="form-group">
@@ -868,6 +906,7 @@ function showEditLinkModal(linkId, sectionId, currentTitle, currentUrl) {
                 <label class="form-label">URL</label>
                 <input type="url" class="form-input" name="url" value="${currentUrl}" required>
             </div>
+            ${faviconFormGroup(currentFavicon)}
             <div class="form-actions">
                 <button type="button" class="btn-secondary" onclick="hideModal()">Cancel</button>
                 <button type="submit" class="btn-primary">Save</button>
@@ -884,10 +923,11 @@ async function handleEditLink(event, linkId) {
     const formData = new FormData(event.target);
     const title = formData.get('title');
     const url = formData.get('url');
+    const favicon = formData.get('favicon') || undefined;
 
     try {
         showLoading();
-        await updateLink(linkId, { title, url });
+        await updateLink(linkId, { title, url, favicon });
         await loadDashboard(currentCollectionId);
         hideModal();
     } catch (error) {

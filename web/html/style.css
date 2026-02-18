@@ -649,6 +649,15 @@ body {
     color: var(--color-text-muted);
 }
 
+.favicon-input-row {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.favicon-input-row .form-input {
+    flex: 1;
+}
+
 .form-actions {
     display: flex;
     gap: var(--spacing-md);
