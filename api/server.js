@@ -341,7 +341,7 @@ async function fetchFavicon(siteUrl) {
     const isPrivate = isPrivateUrl(parsed);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+    const timeout = setTimeout(() => controller.abort(), 3000);
 
     try {
       const response = await fetch(siteUrl, {
@@ -372,7 +372,7 @@ async function fetchFavicon(siteUrl) {
     try {
       const icoUrl = `${parsed.origin}/favicon.ico`;
       const icoController = new AbortController();
-      const icoTimeout = setTimeout(() => icoController.abort(), 3000);
+      const icoTimeout = setTimeout(() => icoController.abort(), 2000);
       const icoResponse = await fetch(icoUrl, { method: 'HEAD', signal: icoController.signal });
       clearTimeout(icoTimeout);
       if (icoResponse.ok) return icoUrl;
@@ -407,12 +407,21 @@ app.post('/api/sections/:sectionId/links', authenticateToken, async (req, res) =
   res.status(201).json(link);
 });
 
-app.put('/api/links/:id', authenticateToken, (req, res) => {
+app.put('/api/links/:id', authenticateToken, async (req, res) => {
   if (!ownsLink(req.params.id, req.user.id)) return res.status(404).json({ error: 'Not found' });
 
   const { title, url, favicon, sort_order } = req.body;
+
+  let newFavicon = favicon ?? null;
+  if (url && !favicon) {
+    const existing = db.prepare('SELECT url FROM links WHERE id = ?').get(req.params.id);
+    if (existing && existing.url !== url) {
+      newFavicon = await fetchFavicon(url);
+    }
+  }
+
   db.prepare('UPDATE links SET title = COALESCE(?, title), url = COALESCE(?, url), favicon = COALESCE(?, favicon), sort_order = COALESCE(?, sort_order) WHERE id = ?')
-    .run(title, url, favicon, sort_order, req.params.id);
+    .run(title, url, newFavicon, sort_order, req.params.id);
   const link = db.prepare('SELECT * FROM links WHERE id = ?').get(req.params.id);
   res.json(link);
 });
