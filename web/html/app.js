@@ -108,6 +108,23 @@ async function selectAccentPreset(color) {
 
 function setTheme(theme) {
     localStorage.setItem('ctrltab-theme', theme);
+    const overlay = document.getElementById('glitchOverlay');
+    const currentTheme = document.documentElement.dataset.theme || 'light';
+
+    if (theme === 'cyberpunk') {
+        document.body.classList.add('cyberpunk-booting');
+        if (overlay) overlay.classList.add('active');
+        setTimeout(() => {
+            document.body.classList.remove('cyberpunk-booting');
+            if (overlay) overlay.classList.remove('active');
+        }, 1500);
+    } else if (currentTheme === 'cyberpunk') {
+        if (overlay) {
+            overlay.classList.add('shutdown');
+            setTimeout(() => overlay.classList.remove('shutdown'), 700);
+        }
+    }
+
     applyTheme(theme);
     if (currentView === 'settings') showSettings();
 }

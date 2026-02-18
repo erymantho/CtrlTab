@@ -724,6 +724,86 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   Theme Transition — Cyberpunk Boot & Shutdown
+   ═══════════════════════════════════════════════════════════════ */
+
+#glitchOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    pointer-events: none;
+    opacity: 0;
+}
+
+/* BOOT: Switching INTO cyberpunk */
+#glitchOverlay.active {
+    animation: cyberpunkBoot 1.5s steps(1) forwards;
+}
+
+@keyframes cyberpunkBoot {
+    0%   { opacity: 1; background: #ffffff; }
+    7%   { background: #000000; }
+    11%  { background: #ffffff; filter: invert(1); }
+    15%  { background: #000000; filter: none; }
+    22%  {
+        background: repeating-linear-gradient(
+            0deg,
+            #00f5ff 0px, #00f5ff 3px,
+            #ff006e 3px, #ff006e 6px,
+            #000000 6px, #000000 14px
+        );
+    }
+    32%  {
+        background: repeating-linear-gradient(
+            0deg,
+            rgba(0, 245, 255, 0.7) 0px, rgba(0, 245, 255, 0.7) 1px,
+            rgba(255, 0, 110, 0.4) 1px, rgba(255, 0, 110, 0.4) 2px,
+            transparent 2px, transparent 5px
+        );
+    }
+    45%  { background: rgba(0, 245, 255, 0.15); filter: blur(2px); }
+    58%  { background: rgba(255, 0, 110, 0.1); filter: none; }
+    72%  { background: rgba(0, 245, 255, 0.05); }
+    88%  { opacity: 0.3; background: transparent; }
+    100% { opacity: 0; }
+}
+
+/* Container distortion during boot */
+.cyberpunk-booting .app-container {
+    animation: containerBoot 1.5s ease-out forwards, crtFlicker 13s linear infinite;
+}
+
+@keyframes containerBoot {
+    0%  { filter: brightness(8) saturate(0); transform: scale(1.03); }
+    7%  { filter: invert(1) hue-rotate(180deg); transform: scale(1); }
+    11% { filter: brightness(0); }
+    15% { filter: hue-rotate(90deg) saturate(8) brightness(3); transform: translateX(-20px) skewX(-3deg); }
+    22% { filter: hue-rotate(200deg) saturate(5); transform: translateX(20px) skewX(3deg); }
+    30% { filter: none; transform: translateX(-8px); }
+    36% { transform: translateX(8px); }
+    42% { filter: brightness(2) saturate(3); transform: none; }
+    55% { filter: none; }
+    65% { filter: brightness(1.4) saturate(2); }
+    80% { filter: none; }
+    100% { filter: none; transform: none; }
+}
+
+/* SHUTDOWN: Switching OUT OF cyberpunk */
+#glitchOverlay.shutdown {
+    animation: cyberpunkShutdown 0.7s steps(1) forwards;
+}
+
+@keyframes cyberpunkShutdown {
+    0%   { opacity: 1; background: rgba(0, 245, 255, 0.4); }
+    20%  { background: rgba(255, 0, 110, 0.6); }
+    35%  { background: rgba(131, 56, 236, 0.7); }
+    50%  { background: #ffffff; }
+    65%  { background: #000000; }
+    80%  { opacity: 0.3; background: transparent; }
+    100% { opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    Extreme Glitch & CRT Effects
    ═══════════════════════════════════════════════════════════════ */
 
