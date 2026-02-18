@@ -17,10 +17,69 @@ function applyTheme(theme) {
     } else {
         document.documentElement.dataset.theme = theme;
     }
+    // Cyberpunk has its own fixed accent color; restore or remove custom accent on theme switch
+    if (theme === 'cyberpunk') {
+        document.documentElement.style.removeProperty('--color-accent');
+    } else {
+        applyAccentColor(_accentColor);
+    }
     // Update active state in settings view
     document.querySelectorAll('.theme-card').forEach(card => {
         card.classList.toggle('active', card.dataset.themeValue === theme);
     });
+}
+
+function applyAccentColor(color) {
+    const theme = document.documentElement.dataset.theme;
+    if (theme === 'cyberpunk') return;
+    if (color) {
+        document.documentElement.style.setProperty('--color-accent', color);
+    } else {
+        document.documentElement.style.removeProperty('--color-accent');
+    }
+}
+
+async function loadUserPreferences() {
+    try {
+        const prefs = await apiRequest('/auth/preferences');
+        _accentColor = prefs.accentColor || null;
+        applyAccentColor(_accentColor);
+    } catch {}
+}
+
+function updateAccentPreview(color) {
+    const swatch = document.getElementById('accentSwatch');
+    const resetBtn = document.getElementById('accentResetBtn');
+    if (swatch) swatch.style.background = color;
+    if (resetBtn) resetBtn.style.display = '';
+}
+
+async function handleAccentColorChange(color) {
+    _accentColor = color;
+    applyAccentColor(color);
+    try {
+        await apiRequest('/auth/preferences', {
+            method: 'PUT',
+            body: JSON.stringify({ accentColor: color }),
+        });
+    } catch {}
+}
+
+async function resetAccentColor() {
+    _accentColor = null;
+    applyAccentColor(null);
+    const input = document.getElementById('accentColorInput');
+    const swatch = document.getElementById('accentSwatch');
+    const resetBtn = document.getElementById('accentResetBtn');
+    if (input) input.value = '#e2003d';
+    if (swatch) swatch.style.background = 'var(--color-accent)';
+    if (resetBtn) resetBtn.style.display = 'none';
+    try {
+        await apiRequest('/auth/preferences', {
+            method: 'PUT',
+            body: JSON.stringify({ accentColor: null }),
+        });
+    } catch {}
 }
 
 function setTheme(theme) {
@@ -98,6 +157,7 @@ async function checkAuth() {
 let currentCollectionId = null;
 let currentView = 'collections';
 let collections = [];
+let _accentColor = null;
 
 // DOM Elements
 const elements = {
@@ -378,6 +438,22 @@ function showSettings() {
                     </div>
                     <span class="theme-card-label">Cyberpunk</span>
                 </button>
+            </div>
+            <div class="accent-color-row">
+                <span class="accent-color-label">Accent color</span>
+                <div class="accent-color-controls">
+                    <label class="accent-swatch-label" title="Choose accent color">
+                        <span class="accent-swatch" id="accentSwatch"
+                              style="background:${_accentColor || 'var(--color-accent)'}"></span>
+                        <input type="color" id="accentColorInput"
+                               value="${_accentColor || '#e2003d'}"
+                               oninput="updateAccentPreview(this.value)"
+                               onchange="handleAccentColorChange(this.value)">
+                    </label>
+                    <button class="btn-text" id="accentResetBtn"
+                            style="${_accentColor ? '' : 'display:none'}"
+                            onclick="resetAccentColor()">Reset</button>
+                </div>
             </div>
         </div>
     `;
@@ -1239,5 +1315,6 @@ if ('serviceWorker' in navigator) {
     const authenticated = await checkAuth();
     if (!authenticated) return;
 
+    loadUserPreferences();
     loadCollections();
 })();

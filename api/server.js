@@ -90,6 +90,13 @@ if (!collectionColumns.some(col => col.name === 'user_id')) {
   db.exec('ALTER TABLE collections ADD COLUMN user_id INTEGER REFERENCES users(id) ON DELETE CASCADE');
 }
 
+// Migration: add preferences column to users
+const userColumns = db.pragma('table_info(users)');
+if (!userColumns.some(col => col.name === 'preferences')) {
+  console.log('Migrating database: adding preferences to users...');
+  db.exec("ALTER TABLE users ADD COLUMN preferences TEXT DEFAULT '{}'");
+}
+
 // ─── Admin User Seeding ──────────────────────────────────────────
 async function seedAdmin() {
   const existing = db.prepare('SELECT * FROM users WHERE is_admin = 1').get();
@@ -200,6 +207,30 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
   const hash = await bcrypt.hash(newPassword, 10);
   db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(hash, req.user.id);
   res.json({ success: true });
+});
+
+// ─── User Preferences ────────────────────────────────────────────
+app.get('/api/auth/preferences', authenticateToken, (req, res) => {
+  const user = db.prepare('SELECT preferences FROM users WHERE id = ?').get(req.user.id);
+  res.json(JSON.parse(user?.preferences || '{}'));
+});
+
+app.put('/api/auth/preferences', authenticateToken, (req, res) => {
+  const { accentColor } = req.body;
+  if (accentColor !== null && accentColor !== undefined) {
+    if (!/^#[0-9a-fA-F]{6}$/.test(accentColor)) {
+      return res.status(400).json({ error: 'Invalid accent color, expected #rrggbb' });
+    }
+  }
+  const user = db.prepare('SELECT preferences FROM users WHERE id = ?').get(req.user.id);
+  const prefs = JSON.parse(user?.preferences || '{}');
+  if (accentColor) {
+    prefs.accentColor = accentColor;
+  } else {
+    delete prefs.accentColor;
+  }
+  db.prepare('UPDATE users SET preferences = ? WHERE id = ?').run(JSON.stringify(prefs), req.user.id);
+  res.json(prefs);
 });
 
 // ─── Admin: User Management ─────────────────────────────────────
