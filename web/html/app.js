@@ -816,12 +816,15 @@ function initDragAndDrop() {
 
 function getDragAfterElement(grid, x, y) {
     const cards = [...grid.querySelectorAll('.link-card:not(.dragging)')];
-    return cards.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offsetY = y - box.top - box.height / 2;
-        if (offsetY < 0 && offsetY > closest.offset) return { offset: offsetY, element: child };
-        return closest;
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
+    for (const card of cards) {
+        const box = card.getBoundingClientRect();
+        const onSameRow = y >= box.top && y <= box.bottom;
+        const belowCursor = box.top > y;
+        if (belowCursor || (onSameRow && x < box.left + box.width / 2)) {
+            return card;
+        }
+    }
+    return null;
 }
 
 async function sortSectionAlpha(sectionId) {
