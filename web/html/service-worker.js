@@ -52,10 +52,15 @@ self.addEventListener('fetch', event => {
             )
         );
     } else {
-        // Cache-first for static assets
+        // Network-first for static assets: always fetch latest, fall back to cache if offline
         event.respondWith(
-            caches.match(event.request)
-                .then(cached => cached || fetch(event.request))
+            fetch(event.request)
+                .then(response => {
+                    const clone = response.clone();
+                    caches.open(CACHE_VERSION).then(cache => cache.put(event.request, clone));
+                    return response;
+                })
+                .catch(() => caches.match(event.request))
         );
     }
 });
