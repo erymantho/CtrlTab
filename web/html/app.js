@@ -708,17 +708,7 @@ function renderSections(sections) {
             const links = section.links || [];
             return `
             <div class="section" data-section-id="${section.id}">
-                <div class="section-header">
-                    <div class="section-drag-handle" draggable="true" title="Drag to reorder">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                            <circle cx="4" cy="3" r="1.2" fill="currentColor"/>
-                            <circle cx="10" cy="3" r="1.2" fill="currentColor"/>
-                            <circle cx="4" cy="7" r="1.2" fill="currentColor"/>
-                            <circle cx="10" cy="7" r="1.2" fill="currentColor"/>
-                            <circle cx="4" cy="11" r="1.2" fill="currentColor"/>
-                            <circle cx="10" cy="11" r="1.2" fill="currentColor"/>
-                        </svg>
-                    </div>
+                <div class="section-header" draggable="true">
                     <h3 class="section-title">${escapeHtml(section.name)}</h3>
                     <div class="section-actions">
                         <button class="btn-icon btn-icon--labeled" onclick="showAddLinkModal(${section.id})" title="Add link">
@@ -842,9 +832,9 @@ function initDragAndDrop() {
     if (!container) return;
 
     container.addEventListener('dragstart', e => {
-        const handle = e.target.closest('.section-drag-handle');
-        if (!handle) return;
-        const section = handle.closest('.section[data-section-id]');
+        const header = e.target.closest('.section-header');
+        if (!header) return;
+        const section = header.closest('.section[data-section-id]');
         if (!section) return;
         _draggingSection = section;
         section.classList.add('section-dragging');
