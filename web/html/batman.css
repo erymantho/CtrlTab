@@ -1,0 +1,428 @@
+/* ═══════════════════════════════════════════════════════════════
+   BATMAN THEME
+   Gotham City — Dark. Yellow. Armored.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ─── CSS Variables ───────────────────────────────────────────── */
+[data-theme="batman"] {
+    --color-accent:         #f5c518;
+    --color-highlight:      #f5c518;
+    --color-secondary:      #b8940a;
+    --color-success:        #4ade80;
+    --color-bg-primary:     #000000;
+    --color-bg-secondary:   #0a0a0e;
+    --color-bg-tertiary:    #141419;
+    --color-bg-elevated:    #1c1c24;
+    --color-text-primary:   #e8e8e0;
+    --color-text-secondary: #8a8a9a;
+    --color-text-muted:     #55556a;
+    --glow-accent:    0 0 10px rgba(245,197,24,1), 0 0 28px rgba(245,197,24,.65), 0 0 60px rgba(245,197,24,.25);
+    --glow-highlight: 0 0 10px rgba(245,197,24,1), 0 0 28px rgba(245,197,24,.65);
+    --glow-secondary: 0 0 10px rgba(184,148,10,.85), 0 0 24px rgba(184,148,10,.45);
+    --glow-success:   0 0 8px rgba(74,222,128,.5), 0 0 16px rgba(74,222,128,.25);
+    --font-display: 'Bebas Neue', 'Impact', condensed, sans-serif;
+}
+
+/* ─── Background: Batman ───────────────────────────────────────── */
+
+[data-theme="batman"] .grid-background {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)),
+        url("batman-background.jpg") center center / cover no-repeat;
+}
+
+[data-theme="batman"] .grid-background::before {
+    display: none;
+}
+
+[data-theme="batman"] .grid-background::after {
+    display: none;
+}
+
+[data-theme="batman"] .scan-lines {
+    display: none;
+}
+
+/* ─── Sidebar ─────────────────────────────────────────────────── */
+[data-theme="batman"] .sidebar {
+    border-right: 2px solid rgba(245,197,24,.4);
+    box-shadow: 2px 0 32px rgba(245,197,24,.12), 4px 0 60px rgba(245,197,24,.05);
+    position: relative;
+}
+
+[data-theme="batman"] .sidebar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: -2px;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent 0%, rgba(245,197,24,.7) 30%, rgba(245,197,24,.7) 70%, transparent 100%);
+    animation: batBorderPulse 3s ease-in-out infinite;
+}
+
+[data-theme="batman"] .sidebar-header {
+    border-bottom: 1px solid rgba(245,197,24,.18);
+    background: linear-gradient(180deg, rgba(245,197,24,.05) 0%, transparent 100%);
+}
+
+[data-theme="batman"] .sidebar-footer {
+    border-top: 1px solid rgba(245,197,24,.12);
+}
+
+@keyframes batBorderPulse {
+    0%, 100% { opacity: .3; filter: none; }
+    50%       { opacity: 1;  filter: drop-shadow(0 0 6px rgba(245,197,24,.9)); }
+}
+
+/* ─── Logo ────────────────────────────────────────────────────── */
+[data-theme="batman"] .logo-text {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    letter-spacing: 3px;
+    animation: batLogoGlow 6s ease-in-out infinite;
+}
+
+[data-theme="batman"] .logo-accent {
+    color: var(--color-accent);
+}
+
+[data-theme="batman"] .subtitle {
+    font-family: var(--font-display);
+    letter-spacing: 4px;
+    font-size: 0.6rem;
+    color: rgba(245,197,24,.6);
+}
+
+@keyframes batLogoGlow {
+    0%, 60%, 100% { filter: drop-shadow(0 0 4px rgba(245,197,24,.4)); }
+    68%            { filter: drop-shadow(0 0 22px rgba(245,197,24,1)) drop-shadow(0 0 50px rgba(245,197,24,.7)) drop-shadow(0 0 90px rgba(245,197,24,.35)); }
+    78%            { filter: drop-shadow(0 0 5px rgba(245,197,24,.55)); }
+}
+
+/* ─── Collection items ────────────────────────────────────────── */
+[data-theme="batman"] .collections-list .collection-btn {
+    position: relative;
+    border-left: 2px solid transparent;
+    transition: border-color .2s, background .2s, transform .15s;
+}
+
+[data-theme="batman"] .collections-list .collection-btn:hover {
+    border-left-color: rgba(245,197,24,.5);
+    background: rgba(245,197,24,.04);
+    transform: translateX(3px);
+}
+
+[data-theme="batman"] .collections-list .collection-btn.active {
+    border-left-color: var(--color-accent);
+    background: rgba(245,197,24,.07);
+    color: var(--color-accent);
+}
+
+[data-theme="batman"] .collections-list .collection-btn.active::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: var(--color-accent);
+    box-shadow: var(--glow-highlight);
+}
+
+[data-theme="batman"] .settings-btn:hover {
+    border-color: rgba(245,197,24,.5);
+    background: rgba(245,197,24,.06);
+    color: var(--color-accent);
+}
+
+/* ─── Section headers & titles ────────────────────────────────── */
+[data-theme="batman"] .section-header {
+    border-bottom: 1px solid rgba(245,197,24,.15);
+    position: relative;
+}
+
+[data-theme="batman"] .section-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(245,197,24,.5) 25%,
+        rgba(245,197,24,.9) 50%,
+        rgba(245,197,24,.5) 75%,
+        transparent 100%
+    );
+    animation: sectionUnderlineSweep 3.5s ease-in-out infinite;
+}
+
+@keyframes sectionUnderlineSweep {
+    0%, 100% { opacity: .35; transform: scaleX(.7); transform-origin: center; }
+    50%       { opacity: 1;   transform: scaleX(1); }
+}
+
+[data-theme="batman"] .section-title {
+    font-family: var(--font-display);
+    letter-spacing: 2px;
+    font-size: 1rem;
+    color: var(--color-text-primary);
+}
+
+[data-theme="batman"] .collection-title {
+    font-family: var(--font-display);
+    letter-spacing: 3px;
+}
+
+/* ─── Link cards ──────────────────────────────────────────────── */
+[data-theme="batman"] .link-card {
+    border: 1px solid rgba(255,255,255,.06);
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+    transition: border-color .2s, box-shadow .2s, transform .15s;
+    background-image: radial-gradient(circle, rgba(245,197,24,.022) 1px, transparent 1px);
+    background-size: 14px 14px;
+}
+
+[data-theme="batman"] .link-card:hover {
+    border-color: rgba(245,197,24,.9);
+    box-shadow: 0 0 12px rgba(245,197,24,1), 0 0 32px rgba(245,197,24,.5), 0 0 70px rgba(245,197,24,.18);
+    transform: translateY(-3px);
+}
+
+/* ─── Buttons ─────────────────────────────────────────────────── */
+[data-theme="batman"] .btn-primary {
+    background: var(--color-accent);
+    color: #000;
+    border: none;
+    font-weight: 700;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+
+[data-theme="batman"] .btn-primary:hover {
+    background: #ffd700;
+    box-shadow: 0 0 14px rgba(245,197,24,1), 0 0 35px rgba(245,197,24,.55), 0 0 70px rgba(245,197,24,.2);
+    transform: translateY(-2px);
+}
+
+[data-theme="batman"] .btn-secondary {
+    border: 2px solid rgba(245,197,24,.4);
+    color: var(--color-accent);
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+
+[data-theme="batman"] .btn-secondary:hover {
+    border-color: var(--color-accent);
+    background: rgba(245,197,24,.08);
+    box-shadow: var(--glow-secondary);
+}
+
+[data-theme="batman"] .btn-icon {
+    border: 1px solid rgba(245,197,24,.18);
+}
+
+[data-theme="batman"] .btn-icon:hover {
+    border-color: rgba(245,197,24,.7);
+    background: rgba(245,197,24,.08);
+    box-shadow: 0 0 10px rgba(245,197,24,.4);
+    transform: scale(1.08);
+}
+
+[data-theme="batman"] .btn-danger {
+    border: 2px solid rgba(239,68,68,.35);
+}
+
+[data-theme="batman"] .btn-danger:hover {
+    background: rgba(239,68,68,.1);
+    border-color: #ef4444;
+}
+
+[data-theme="batman"] .btn-text-danger:hover {
+    color: #ef4444;
+}
+
+/* ─── Modal ───────────────────────────────────────────────────── */
+[data-theme="batman"] .modal-backdrop {
+    background: rgba(0,0,0,.92);
+    backdrop-filter: blur(8px);
+}
+
+[data-theme="batman"] .modal-content {
+    border: 1px solid rgba(245,197,24,.28);
+    border-top: 3px solid var(--color-accent);
+    box-shadow: 0 0 40px rgba(245,197,24,.12), 0 20px 60px rgba(0,0,0,.85);
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+
+[data-theme="batman"] .modal-header {
+    background: linear-gradient(180deg, rgba(245,197,24,.06) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(245,197,24,.18);
+}
+
+[data-theme="batman"] .modal-title {
+    font-family: var(--font-display);
+    letter-spacing: 2px;
+    font-size: 1.1rem;
+    color: var(--color-accent);
+}
+
+/* ─── Forms ───────────────────────────────────────────────────── */
+[data-theme="batman"] .form-input {
+    border-color: rgba(245,197,24,.18);
+}
+
+[data-theme="batman"] .form-input:focus {
+    border-color: var(--color-accent);
+    box-shadow: var(--glow-accent);
+    outline: none;
+}
+
+[data-theme="batman"] .form-label {
+    color: var(--color-text-secondary);
+    letter-spacing: .5px;
+}
+
+/* ─── Loading spinner ─────────────────────────────────────────── */
+[data-theme="batman"] .loading-spinner {
+    border-top-color: var(--color-accent);
+    border-right-color: rgba(245,197,24,.3);
+    border-bottom-color: rgba(245,197,24,.1);
+    border-left-color: rgba(245,197,24,.2);
+    box-shadow: var(--glow-accent);
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────────── */
+[data-theme="batman"] ::-webkit-scrollbar-track {
+    background: #000;
+}
+
+[data-theme="batman"] ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--color-accent), var(--color-secondary));
+    border-radius: 2px;
+}
+
+[data-theme="batman"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+    box-shadow: var(--glow-accent);
+}
+
+/* ─── Settings ────────────────────────────────────────────────── */
+[data-theme="batman"] .settings-section-title {
+    font-family: var(--font-display);
+    letter-spacing: 2px;
+    font-size: 1rem;
+    color: var(--color-accent);
+}
+
+[data-theme="batman"] .settings-section {
+    border-color: rgba(245,197,24,.12);
+}
+
+[data-theme="batman"] .theme-card {
+    border-color: rgba(245,197,24,.2);
+}
+
+[data-theme="batman"] .theme-card:hover {
+    border-color: rgba(245,197,24,.5);
+}
+
+[data-theme="batman"] .theme-card.active {
+    border-color: var(--color-accent);
+    box-shadow: var(--glow-highlight);
+}
+
+[data-theme="batman"] .theme-card.active .theme-card-label {
+    color: var(--color-accent);
+}
+
+/* ─── Settings: batman theme preview card (visible in all themes) ─ */
+.theme-preview-batman {
+    background: #000;
+    position: relative;
+    overflow: hidden;
+}
+
+.theme-preview-batman::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 90% 80% at 72% 22%, rgba(245,197,24,.22) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.theme-preview-batman .tp-sidebar {
+    background: #0a0a0e;
+    border-right: 1px solid rgba(245,197,24,.4);
+}
+
+.theme-preview-batman .tp-bar {
+    background: rgba(245,197,24,.12);
+    border: 1px solid rgba(245,197,24,.35);
+}
+
+.theme-preview-batman .tp-card {
+    background: #1c1c24;
+    border: 1px solid rgba(245,197,24,.2);
+    clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%);
+}
+
+/* ─── Login page ──────────────────────────────────────────────── */
+[data-theme="batman"] .login-box {
+    border: 1px solid rgba(245,197,24,.22);
+    border-top: 3px solid var(--color-accent);
+    box-shadow: 0 0 40px rgba(245,197,24,.1), 0 20px 60px rgba(0,0,0,.85);
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+
+[data-theme="batman"] .login-box .login-subtitle {
+    font-family: var(--font-display);
+    letter-spacing: 4px;
+    font-size: 0.6rem;
+    color: rgba(245,197,24,.6);
+}
+
+[data-theme="batman"] .login-btn {
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+
+/* ─── Transition overlay ──────────────────────────────────────── */
+#glitchOverlay.batman-boot {
+    animation: batmanBoot 1.8s ease-out forwards;
+}
+
+#glitchOverlay.batman-shutdown {
+    animation: batmanShutdown 0.6s ease-in forwards;
+}
+
+@keyframes batmanBoot {
+    0%   { background-color: #000; opacity: 1;  }
+    55%  { background-color: #000; opacity: 1;  }
+    68%  { background-color: #f5c518; opacity: 1;  }
+    82%  { background-color: #f5c518; opacity: .5; }
+    100% { background-color: #f5c518; opacity: 0;  }
+}
+
+@keyframes batmanShutdown {
+    0%   { background-color: #f5c518; opacity: 1; }
+    35%  { background-color: #fff;    opacity: 1; }
+    65%  { background-color: #000;    opacity: 1; }
+    100% { background-color: #000;    opacity: 0; }
+}
+
+/* App container fades in during boot */
+.batman-booting .app-container {
+    animation: batmanContainerBoot 1.8s ease-out forwards;
+}
+
+@keyframes batmanContainerBoot {
+    0%,  55% { opacity: 0; }
+    80%      { opacity: 1; }
+    100%     { opacity: 1; }
+    100%     { opacity: 1; filter: brightness(1);    }
+}

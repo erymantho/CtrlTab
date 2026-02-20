@@ -17,8 +17,8 @@ function applyTheme(theme) {
     } else {
         document.documentElement.dataset.theme = theme;
     }
-    // Cyberpunk has its own fixed accent color; restore or remove custom accent on theme switch
-    if (theme === 'cyberpunk') {
+    // Cyberpunk and batman have their own fixed accent colors
+    if (theme === 'cyberpunk' || theme === 'batman') {
         document.documentElement.style.removeProperty('--color-accent');
     } else {
         applyAccentColor(_accentColor);
@@ -31,7 +31,7 @@ function applyTheme(theme) {
 
 function applyAccentColor(color) {
     const theme = document.documentElement.dataset.theme;
-    if (theme === 'cyberpunk') return;
+    if (theme === 'cyberpunk' || theme === 'batman') return;
     if (color) {
         document.documentElement.style.setProperty('--color-accent', color);
     } else {
@@ -118,10 +118,22 @@ function setTheme(theme) {
             document.body.classList.remove('cyberpunk-booting');
             if (overlay) overlay.classList.remove('active');
         }, 1500);
+    } else if (theme === 'batman') {
+        document.body.classList.add('batman-booting');
+        if (overlay) overlay.classList.add('batman-boot');
+        setTimeout(() => {
+            document.body.classList.remove('batman-booting');
+            if (overlay) overlay.classList.remove('batman-boot');
+        }, 1800);
     } else if (currentTheme === 'cyberpunk') {
         if (overlay) {
             overlay.classList.add('shutdown');
             setTimeout(() => overlay.classList.remove('shutdown'), 700);
+        }
+    } else if (currentTheme === 'batman') {
+        if (overlay) {
+            overlay.classList.add('batman-shutdown');
+            setTimeout(() => overlay.classList.remove('batman-shutdown'), 600);
         }
     }
 
@@ -345,10 +357,13 @@ async function uploadIcon(file) {
     formData.append('icon', file);
     const res = await fetch('/api/upload/icon', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${getToken()}` },
+        headers: { 'Authorization': `Bearer ${getAuthToken()}` },
         body: formData,
     });
-    if (!res.ok) throw new Error('Upload failed');
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Upload failed');
+    }
     return (await res.json()).url;
 }
 
@@ -504,8 +519,9 @@ function showSettings() {
                     </div>
                     <span class="theme-card-label">Cyberpunk</span>
                 </button>
+                <!-- batman theme hidden (WIP) -->
             </div>
-            ${currentTheme !== 'cyberpunk' ? `<div class="accent-color-section">
+            ${currentTheme !== 'cyberpunk' && currentTheme !== 'batman' ? `<div class="accent-color-section">
                 <span class="accent-color-label">Accent color</span>
                 <div class="accent-presets">
                     ${(() => {
@@ -745,18 +761,46 @@ function renderSections(sections) {
     setTimeout(() => elements.sectionsContainer.classList.remove('sections-enter'), 600);
 }
 
-function getFaviconSrc(link) {
-    if (link.favicon) return link.favicon;
+function buildFaviconSources(link) {
+    const seen = new Set();
+    const sources = [];
+    const add = url => { if (url && !seen.has(url)) { seen.add(url); sources.push(url); } };
+
+    if (link.favicon) add(link.favicon);
+
     try {
-        const parsed = new URL(link.url);
-        const h = parsed.hostname;
-        const m = h.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
-        const isLocal = h === 'localhost' || (m && (+m[1] === 10 || +m[1] === 127
-            || (+m[1] === 172 && +m[2] >= 16 && +m[2] <= 31)
-            || (+m[1] === 192 && +m[2] === 168)));
-        if (isLocal) return `${parsed.origin}/favicon.ico`;
+        const { origin, hostname } = new URL(link.url);
+        const m = hostname.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+        const isLocal = hostname === 'localhost' || (m && (
+            +m[1] === 10 || +m[1] === 127 ||
+            (+m[1] === 172 && +m[2] >= 16 && +m[2] <= 31) ||
+            (+m[1] === 192 && +m[2] === 168)
+        ));
+
+        // Browser-side fallback chain (works even when server couldn't reach local apps)
+        add(`${origin}/favicon.ico`);
+        add(`${origin}/favicon.png`);
+        add(`${origin}/apple-touch-icon.png`);
+
+        if (!isLocal) {
+            add(`https://www.google.com/s2/favicons?domain=${hostname}&sz=64`);
+        }
     } catch {}
-    return null;
+
+    return sources;
+}
+
+function onFaviconError(img) {
+    const fallbacks = (img.dataset.fallbacks || '').split('|').filter(Boolean);
+    if (fallbacks.length > 0) {
+        img.dataset.fallbacks = fallbacks.slice(1).join('|');
+        img.src = fallbacks[0];
+        return;
+    }
+    // All sources exhausted: show letter initial
+    const box = img.closest('.link-favicon');
+    const initial = img.dataset.initial || '?';
+    if (box) box.innerHTML = `<span class="link-favicon-initial">${initial}</span>`;
 }
 
 function renderLinks(links, sectionId) {
@@ -767,11 +811,15 @@ function renderLinks(links, sectionId) {
     const target = getOpenInNewTab() ? ' target="_blank"' : '';
     return links
         .map(link => {
-            const faviconSrc = getFaviconSrc(link);
+            const sources = buildFaviconSources(link);
+            const initial = escapeHtml((link.title || '?')[0].toUpperCase());
+            const faviconHtml = sources.length > 0
+                ? `<img src="${escapeHtml(sources[0])}" data-fallbacks="${escapeHtml(sources.slice(1).join('|'))}" data-initial="${initial}" alt="" onerror="onFaviconError(this)">`
+                : `<span class="link-favicon-initial">${initial}</span>`;
             return `
             <a href="${escapeHtml(link.url)}"${target} class="link-card" draggable="true" data-link-id="${link.id}">
                 <div class="link-favicon">
-                    ${faviconSrc ? `<img src="${escapeHtml(faviconSrc)}" alt="" onerror="this.style.display='none'">` : ''}
+                    ${faviconHtml}
                 </div>
                 <div class="link-content">
                     <div class="link-title">${escapeHtml(link.title)}</div>
@@ -1136,7 +1184,7 @@ function faviconFormGroup(currentValue = '') {
                 <div class="icon-upload-actions">
                     <button type="button" class="btn-secondary" onclick="document.getElementById('faviconFileInput').click()">Upload icon</button>
                     <button type="button" class="btn-text-danger" id="faviconRemoveBtn" style="${hasIcon ? '' : 'display:none'}" onclick="removeIcon()">Remove</button>
-                    <p class="icon-upload-hint">PNG, SVG or ICO &middot; max 512 KB</p>
+                    <p class="icon-upload-hint">PNG, SVG or ICO &middot; max 2 MB</p>
                 </div>
             </div>
         </div>`;
@@ -1153,8 +1201,9 @@ async function handleIconUpload(input) {
         const wrap = document.getElementById('faviconPreviewBox');
         wrap.innerHTML = `<img id="faviconPreviewImg" src="${url}" alt="" onerror="this.style.display='none'">`;
         document.getElementById('faviconRemoveBtn').style.display = '';
-    } catch {
-        alert('Failed to upload icon');
+    } catch (err) {
+        console.error('[upload] error:', err);
+        alert(err.message || 'Failed to upload icon');
     }
     input.value = '';
 }

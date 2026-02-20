@@ -26,11 +26,16 @@ const upload = multer({
       cb(null, `${crypto.randomUUID()}${ext}`);
     }
   }),
-  limits: { fileSize: 512 * 1024 },
+  limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = ['.png', '.svg', '.ico'];
+    const allowedExts = ['.png', '.svg', '.ico'];
+    const allowedMimes = ['image/png', 'image/svg+xml', 'image/x-icon', 'image/vnd.microsoft.icon'];
     const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, allowed.includes(ext));
+    if (allowedExts.includes(ext) || allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('INVALID_TYPE'));
+    }
   }
 });
 
@@ -402,34 +407,62 @@ async function fetchFavicon(siteUrl) {
   try {
     const parsed = new URL(siteUrl);
     const { hostname } = parsed;
+    const local = isPrivateHostname(hostname);
 
-    if (isPrivateHostname(hostname)) {
-      // Try to parse the real favicon from the HTML for local apps
-      try {
-        const controller = new AbortController();
-        setTimeout(() => controller.abort(), 2000);
-        const res = await fetch(siteUrl, { signal: controller.signal, headers: { 'User-Agent': 'CtrlTab/1.0' } });
-        if (res.ok) {
-          const html = await res.text();
-          const match = html.match(/<link[^>]*rel=["'](?:shortcut )?icon["'][^>]*href=["']([^"']+)["'][^>]*/i)
-            || html.match(/<link[^>]*href=["']([^"']+)["'][^>]*rel=["'](?:shortcut )?icon["'][^>]*/i);
-          if (match) return new URL(match[1], siteUrl).href;
+    // Try to extract the real favicon URL from the page HTML (all sites)
+    try {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), local ? 2000 : 5000);
+      const res = await fetch(siteUrl, {
+        signal: controller.signal,
+        headers: { 'User-Agent': 'CtrlTab/1.0' },
+        redirect: 'follow',
+      });
+      if (res.ok) {
+        const html = await res.text();
+        const base = res.url || siteUrl;
+        // Check icon types in order of preference (apple-touch-icon is highest quality)
+        const patterns = [
+          /<link[^>]+rel=["'][^"']*apple-touch-icon(?:-precomposed)?[^"']*["'][^>]+href=["']([^"']+)["'][^>]*/i,
+          /<link[^>]+href=["']([^"']+)["'][^>]+rel=["'][^"']*apple-touch-icon(?:-precomposed)?[^"']*["'][^>]*/i,
+          /<link[^>]+rel=["'](?:shortcut )?icon["'][^>]+href=["']([^"']+)["'][^>]*/i,
+          /<link[^>]+href=["']([^"']+)["'][^>]+rel=["'](?:shortcut )?icon["'][^>]*/i,
+          /<link[^>]+rel=["']icon["'][^>]+href=["']([^"']+)["'][^>]*/i,
+          /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']icon["'][^>]*/i,
+        ];
+        for (const pat of patterns) {
+          const m = html.match(pat);
+          if (m && m[1]) return new URL(m[1], base).href;
         }
-      } catch { /* server can't reach local app, browser will try favicon.ico */ }
-      return null;
-    }
+      }
+    } catch { /* unreachable host */ }
 
-    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+    // Local apps the server can't reach: browser handles fallback
+    if (local) return null;
+
+    // Public sites: fall back to Google's favicon service
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=64`;
   } catch {
     return null;
   }
 }
 
 // ─── Icon Upload ──────────────────────────────────────────────────
-app.post('/api/upload/icon', authenticateToken, upload.single('icon'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No valid file uploaded (png, svg, ico, max 512KB)' });
-  const url = `/api/uploads/${req.file.filename}`;
-  res.json({ url });
+app.post('/api/upload/icon', authenticateToken, (req, res, next) => {
+  upload.single('icon')(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'File too large (max 2 MB)' });
+      }
+      if (err.message === 'INVALID_TYPE') {
+        return res.status(400).json({ error: 'Invalid file type. Use PNG, SVG, or ICO.' });
+      }
+      return res.status(400).json({ error: err.message || 'Upload failed' });
+    }
+    if (!req.file) return res.status(400).json({ error: 'No valid file uploaded. Use PNG, SVG, or ICO (max 2 MB).' });
+    const url = `/api/uploads/${req.file.filename}`;
+    res.json({ url });
+  });
 });
 
 // ─── Links ────────────────────────────────────────────────────────
