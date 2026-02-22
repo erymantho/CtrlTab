@@ -519,7 +519,19 @@ function showSettings() {
                     </div>
                     <span class="theme-card-label">Cyberpunk</span>
                 </button>
-                <!-- batman theme hidden (WIP) -->
+                <button class="theme-card ${currentTheme === 'batman' ? 'active' : ''}" data-theme-value="batman" onclick="setTheme('batman')">
+                    <div class="theme-preview theme-preview-batman">
+                        <div class="tp-sidebar"></div>
+                        <div class="tp-content">
+                            <div class="tp-bar"></div>
+                            <div class="tp-cards">
+                                <div class="tp-card"></div>
+                                <div class="tp-card"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="theme-card-label">Batman</span>
+                </button>
             </div>
             ${currentTheme !== 'cyberpunk' && currentTheme !== 'batman' ? `<div class="accent-color-section">
                 <span class="accent-color-label">Accent color</span>

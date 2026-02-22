@@ -33,7 +33,7 @@
     pointer-events: none;
     background:
         linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)),
-        url("batman-background.jpg") center center / cover no-repeat;
+        url("assets/batman-background.jpg") center center / cover no-repeat;
 }
 
 [data-theme="batman"] .grid-background::before {
