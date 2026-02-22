@@ -620,7 +620,7 @@ function showSettings() {
     html += `
         <div class="settings-footer">
             Built by Michael Smith, with ☕ and sudo privileges
-            <div class="settings-version">v1.0.0</div>
+            <div class="settings-version">v0.1</div>
         </div>
     `;
 
