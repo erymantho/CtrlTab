@@ -381,6 +381,29 @@
     clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
 }
 
+/* ─── Batman silhouette in sidebar ───────────────────────────── */
+.bat-silhouette {
+    display: none;
+}
+
+[data-theme="batman"] .bat-silhouette {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: -39%;
+    width: 175%;
+    aspect-ratio: 1446 / 1920;
+    z-index: 0;
+    pointer-events: none;
+    transform: translateY(75%);
+    animation: batBorderPulse 60s ease-in-out infinite;
+}
+
+[data-theme="batman"] .sidebar-footer {
+    position: relative;
+    z-index: 1;
+}
+
 /* ─── Batman Intro: 10s cinematic boot sequence ───────────────── */
 
 #batman-intro {
@@ -499,7 +522,7 @@
     100%{ opacity: 0.5;   }
 }
 
-/* ── BATMAN STAMP: text slams onto screen ── */
+/* ── BATMAN STAMP: Batman slams onto screen ── */
 #batman-intro .bi-stamp {
     display: flex;
     align-items: center;
@@ -509,7 +532,7 @@
 }
 
 #batman-intro .bi-stamp-img {
-    width: clamp(180px, 42vw, 520px);
+    width: clamp(360px, 84vw, 1040px);
     height: auto;
     display: block;
     filter:
