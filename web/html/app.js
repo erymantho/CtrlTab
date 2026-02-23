@@ -628,6 +628,10 @@ function showSettings() {
     html += `
         <div class="settings-footer">
             Built by Michael Smith, with Claude Code
+            <a href="https://github.com/erymantho/ctrlTAB" target="_blank" rel="noopener" class="github-link">
+                <img class="github-logo" src="icons/github-logo.svg" alt="GitHub" width="14" height="14">
+                GitHub
+            </a>
             <div class="settings-version">v0.1</div>
         </div>
     `;

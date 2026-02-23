@@ -923,6 +923,31 @@ body {
     color: var(--color-text-muted);
 }
 
+.github-link {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    gap: 5px;
+    margin-top: var(--spacing-xs);
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 11px;
+    transition: color 0.15s;
+}
+
+.github-link:hover {
+    color: var(--color-text-primary);
+}
+
+.github-link img {
+    width: 14px;
+    height: 14px;
+}
+
+[data-theme="dark"] .github-link img,
+[data-theme="cyberpunk"] .github-link img,
+[data-theme="batman"] .github-link img { filter: invert(1); }
+
 .settings-version {
     margin-top: var(--spacing-xs);
     font-family: var(--font-mono);
