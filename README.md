@@ -102,7 +102,7 @@ ctrlTAB is now available at `http://localhost:8090`. Log in with your admin cred
 - [x] PWA with offline support
 - [x] User accounts and authentication
 - [x] Drag & drop reordering of links and sections *- works, but buggy*
-- [ ] Drag links across collections
+- [ ] Drag links across collections *- works, but buggy*
 - [ ] Dutch language support
 - [ ] Descriptions for collections, sections, and links
 - [ ] Search across all links
@@ -110,7 +110,6 @@ ctrlTAB is now available at `http://localhost:8090`. Log in with your admin cred
 - [ ] Tags and filtering
 - [ ] Browser extension for quick saving
 - [ ] Keyboard shortcuts
-
 
 ---
 
