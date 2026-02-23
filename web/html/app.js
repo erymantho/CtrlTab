@@ -862,24 +862,48 @@ function renderLinks(links, sectionId) {
 // ═══════════════════════════════════════════════════════════════
 
 let _draggingCard = null;
+let _draggingSourceGrid = null;
+let _currentDragGrid = null;
 let _draggingSection = null;
+let _sectionDragController = null;
+
+const LINKS_EMPTY_HTML = '<p style="color: var(--color-text-muted); font-size: 14px;">No links yet</p>';
 
 function initDragAndDrop() {
     _draggingCard = null;
+    _draggingSourceGrid = null;
+    _currentDragGrid = null;
     _draggingSection = null;
 
+    // Links: grids are recreated on every render so listeners stay fresh
     document.querySelectorAll('.links-grid').forEach(grid => {
         grid.addEventListener('dragstart', e => {
             const card = e.target.closest('.link-card[data-link-id]');
             if (!card) return;
             _draggingCard = card;
+            _draggingSourceGrid = grid;
+            _currentDragGrid = grid;
             card.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
+            // Required by Firefox to initiate element drag (not link-URL drag)
+            e.dataTransfer.setData('text/plain', card.dataset.linkId);
         });
 
         grid.addEventListener('dragover', e => {
             e.preventDefault();
             if (!_draggingCard) return;
+            if (_currentDragGrid !== grid) {
+                // Card is moving to a new grid: restore placeholder in the grid it's leaving
+                if (_currentDragGrid && !_currentDragGrid.querySelector('.link-card[data-link-id]:not(.dragging)')) {
+                    const p = document.createElement('p');
+                    p.style.cssText = 'color: var(--color-text-muted); font-size: 14px;';
+                    p.textContent = 'No links yet';
+                    _currentDragGrid.appendChild(p);
+                }
+                // Remove placeholder from the grid being entered
+                grid.querySelector(':scope > p')?.remove();
+                _currentDragGrid = grid;
+            }
             const after = getDragAfterElement(grid, e.clientX, e.clientY);
             if (after) grid.insertBefore(_draggingCard, after);
             else grid.appendChild(_draggingCard);
@@ -888,13 +912,29 @@ function initDragAndDrop() {
         grid.addEventListener('dragend', async () => {
             if (!_draggingCard) return;
             _draggingCard.classList.remove('dragging');
+            // Ensure source grid has its placeholder if it ended up empty
+            if (_draggingSourceGrid && !_draggingSourceGrid.querySelector('.link-card[data-link-id]')) {
+                _draggingSourceGrid.innerHTML = LINKS_EMPTY_HTML;
+            }
             const sectionId = parseInt(grid.dataset.sectionId);
             const orderedIds = [...grid.querySelectorAll('.link-card[data-link-id]')]
                 .map(el => parseInt(el.dataset.linkId));
             _draggingCard = null;
-            await reorderLinks(sectionId, orderedIds);
+            _draggingSourceGrid = null;
+            _currentDragGrid = null;
+            try {
+                await reorderLinks(sectionId, orderedIds);
+            } catch {
+                await loadDashboard(currentCollectionId);
+            }
         });
     });
+
+    // Sections: sectionsContainer persists across renders — abort old listeners
+    // before adding new ones to prevent accumulation on each collection switch
+    if (_sectionDragController) _sectionDragController.abort();
+    _sectionDragController = new AbortController();
+    const { signal } = _sectionDragController;
 
     const container = document.getElementById('sectionsContainer');
     if (!container) return;
@@ -907,8 +947,10 @@ function initDragAndDrop() {
         _draggingSection = section;
         section.classList.add('section-dragging');
         e.dataTransfer.effectAllowed = 'move';
+        // Required by Firefox to initiate element drag
+        e.dataTransfer.setData('text/plain', section.dataset.sectionId);
         e.stopPropagation();
-    });
+    }, { signal });
 
     container.addEventListener('dragover', e => {
         if (!_draggingSection) return;
@@ -916,7 +958,7 @@ function initDragAndDrop() {
         const after = getSectionAfterElement(container, e.clientY);
         if (after) container.insertBefore(_draggingSection, after);
         else container.appendChild(_draggingSection);
-    });
+    }, { signal });
 
     container.addEventListener('dragend', async () => {
         if (!_draggingSection) return;
@@ -924,8 +966,12 @@ function initDragAndDrop() {
         const orderedIds = [...container.querySelectorAll('.section[data-section-id]')]
             .map(el => parseInt(el.dataset.sectionId));
         _draggingSection = null;
-        await reorderSections(currentCollectionId, orderedIds);
-    });
+        try {
+            await reorderSections(currentCollectionId, orderedIds);
+        } catch {
+            await loadDashboard(currentCollectionId);
+        }
+    }, { signal });
 }
 
 function getSectionAfterElement(container, y) {

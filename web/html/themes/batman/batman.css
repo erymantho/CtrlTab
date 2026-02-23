@@ -494,10 +494,10 @@
 /* ── BAT SIGNAL: image fades in from upper area ── */
 #batman-intro .bi-signal {
     opacity: 0;
-    background-image: url("assets/bat-signal.jpg");
+    background-image: url("assets/bat-signal.png");
     background-position: 60% 0%;
     background-repeat: no-repeat;
-    background-size: 29% auto;
+    background-size: 14.5% auto;
     mix-blend-mode: screen;
     animation: biSignalIn 2.0s ease 4.5s forwards;
 }
