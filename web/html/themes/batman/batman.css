@@ -82,21 +82,11 @@
 
 /* ─── Logo ────────────────────────────────────────────────────── */
 [data-theme="batman"] .logo-text {
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    letter-spacing: 3px;
     animation: batLogoGlow 6s ease-in-out infinite;
 }
 
 [data-theme="batman"] .logo-accent {
     color: var(--color-accent);
-}
-
-[data-theme="batman"] .subtitle {
-    font-family: var(--font-display);
-    letter-spacing: 4px;
-    font-size: 0.6rem;
-    color: rgba(245,197,24,.6);
 }
 
 @keyframes batLogoGlow {
@@ -495,7 +485,7 @@
 #batman-intro .bi-signal {
     opacity: 0;
     background-image: url("assets/bat-signal.png");
-    background-position: 60% 0%;
+    background-position: 60% 10%;
     background-repeat: no-repeat;
     background-size: 14.5% auto;
     mix-blend-mode: screen;
@@ -503,10 +493,10 @@
 }
 
 @keyframes biSignalIn {
-    0%  { opacity: 0;    }
-    25% { opacity: 0.5;  }
-    60% { opacity: 0.85; }
-    100%{ opacity: 1;    }
+    0%  { opacity: 0;     }
+    25% { opacity: 0.25;  }
+    60% { opacity: 0.425; }
+    100%{ opacity: 0.5;   }
 }
 
 /* ── BATMAN STAMP: text slams onto screen ── */
