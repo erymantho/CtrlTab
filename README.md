@@ -2,7 +2,7 @@
 
 **Your links. Your rules. Self-hosted.**
 
-A lightweight, self-hosted bookmark and link manager to organize your links into collections and sections. Built for people who want full control over their bookmarks without relying on browser extensions or third-party services.
+A lightweight, self-hosted bookmark and link manager to organize your links into collections and sections. Built for nerds who want full control over their bookmarks without relying on browser extensions or third-party services.
 
 ![Docker](https://img.shields.io/badge/Docker-ready-blue?logo=docker)
 ![Node.js](https://img.shields.io/badge/Node.js-20-green?logo=node.js)
@@ -101,7 +101,7 @@ ctrlTAB is now available at `http://localhost:8090`. Log in with your admin cred
 - [x] Per-user accent color with preset palette and custom picker
 - [x] PWA with offline support
 - [x] User accounts and authentication
-- [x] Drag & drop reordering of links and sections
+- [x] Drag & drop reordering of links and sections *- works, but buggy*
 - [ ] Drag links across collections
 - [ ] Dutch language support
 - [ ] Descriptions for collections, sections, and links
@@ -120,4 +120,4 @@ MIT — do whatever you want with it.
 
 ---
 
-*Built with ☕ and `sudo` privileges.*
+*Built by Michael Smith, with Claude Code*

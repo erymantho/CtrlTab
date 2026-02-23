@@ -489,7 +489,11 @@ app.post('/api/sections/:sectionId/links', authenticateToken, async (req, res) =
 app.put('/api/links/:id', authenticateToken, async (req, res) => {
   if (!ownsLink(req.params.id, req.user.id)) return res.status(404).json({ error: 'Not found' });
 
-  const { title, url, favicon, sort_order } = req.body;
+  const { title, url, favicon, sort_order, section_id } = req.body;
+
+  if (section_id && !ownsSection(section_id, req.user.id)) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
 
   // Non-empty favicon string → custom uploaded icon, keep as-is
   // Empty string or missing → re-fetch for the (new) URL
@@ -501,8 +505,8 @@ app.put('/api/links/:id', authenticateToken, async (req, res) => {
     newFavicon = await fetchFavicon(url || existing?.url);
   }
 
-  db.prepare('UPDATE links SET title = COALESCE(?, title), url = COALESCE(?, url), favicon = COALESCE(?, favicon), sort_order = COALESCE(?, sort_order) WHERE id = ?')
-    .run(title, url, newFavicon, sort_order, req.params.id);
+  db.prepare('UPDATE links SET title = COALESCE(?, title), url = COALESCE(?, url), favicon = COALESCE(?, favicon), sort_order = COALESCE(?, sort_order), section_id = COALESCE(?, section_id) WHERE id = ?')
+    .run(title, url, newFavicon, sort_order, section_id ?? null, req.params.id);
   const link = db.prepare('SELECT * FROM links WHERE id = ?').get(req.params.id);
   res.json(link);
 });

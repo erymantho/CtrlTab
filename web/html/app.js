@@ -428,6 +428,7 @@ function renderCollections() {
         .map(collection => `
             <li class="collection-item">
                 <button
+                    data-collection-id="${collection.id}"
                     onclick="selectCollection(${collection.id})"
                     class="${currentView === 'collections' && currentCollectionId === collection.id ? 'active' : ''}"
                 >
@@ -854,6 +855,12 @@ function renderLinks(links, sectionId) {
                             <path d="M11.333 2A1.886 1.886 0 0 1 14 4.667l-9 9-3.667 1 1-3.667 9-9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
+                    <button class="btn-icon" onclick="copyLinkUrl('${escapeHtml(link.url)}', this)" title="Copy URL">
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                            <rect x="5.5" y="2.5" width="8" height="10" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M5.5 4.5H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h6.5a1 1 0 0 0 1-1V12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </button>
                 </div>
             </a>
         `;
@@ -870,14 +877,88 @@ let _draggingSourceGrid = null;
 let _currentDragGrid = null;
 let _draggingSection = null;
 let _sectionDragController = null;
+let _collectionDropController = null;
+let _collectionHoverTimer = null;
+let _crossCollectionLinkId = null; // set when collection is switched mid-drag
+let _crossCollectionDropped = false; // true when drop event fires on a target grid
 
 const LINKS_EMPTY_HTML = '<p style="color: var(--color-text-muted); font-size: 14px;">No links yet</p>';
 
+function _cleanupDrag() {
+    document.body.classList.remove('link-dragging');
+    document.querySelectorAll('.collection-drop-hover').forEach(el => el.classList.remove('collection-drop-hover'));
+    // Remove card if it ended up hidden in body (cross-collection drag cancelled)
+    document.body.querySelector('.link-card.hidden-drag-source')?.remove();
+    if (_collectionDropController) { _collectionDropController.abort(); _collectionDropController = null; }
+    clearTimeout(_collectionHoverTimer);
+    _collectionHoverTimer = null;
+}
+
+function _attachCollectionHoverListeners(linkId) {
+    if (_collectionDropController) _collectionDropController.abort();
+    _collectionDropController = new AbortController();
+    const { signal } = _collectionDropController;
+
+    document.querySelectorAll('.collections-list button[data-collection-id]').forEach(btn => {
+        const colId = parseInt(btn.dataset.collectionId);
+        if (colId === currentCollectionId) return;
+
+        btn.addEventListener('dragover', e => {
+            e.preventDefault();
+            btn.classList.add('collection-drop-hover');
+            if (!_collectionHoverTimer) {
+                _collectionHoverTimer = setTimeout(() => {
+                    _collectionHoverTimer = null;
+                    _crossCollectionLinkId = linkId;
+                    _crossCollectionDropped = false;
+                    // Park the card in body (hidden) so it survives the collection re-render
+                    // and _draggingCard stays valid for normal DnD in the new collection.
+                    if (_draggingCard) {
+                        _draggingCard.classList.add('hidden-drag-source');
+                        document.body.appendChild(_draggingCard);
+                    }
+                    document.body.classList.remove('link-dragging');
+                    document.querySelectorAll('.collection-drop-hover')
+                        .forEach(el => el.classList.remove('collection-drop-hover'));
+                    selectCollection(colId);
+                }, 800);
+            }
+        }, { signal });
+
+        btn.addEventListener('dragleave', () => {
+            btn.classList.remove('collection-drop-hover');
+            clearTimeout(_collectionHoverTimer);
+            _collectionHoverTimer = null;
+        }, { signal });
+    });
+
+    // Safety net: fires when drag ends while card is still in body
+    // (Escape pressed before entering any grid in the new collection).
+    document.addEventListener('dragend', () => {
+        if (_crossCollectionLinkId && !_crossCollectionDropped) {
+            const card = document.body.querySelector('.link-card.hidden-drag-source');
+            if (card) {
+                // Card never made it into a grid — truly cancelled
+                _crossCollectionLinkId = null;
+                _draggingCard = null; _draggingSourceGrid = null; _currentDragGrid = null;
+                _cleanupDrag();
+                card.remove();
+            }
+        }
+    }, { once: true });
+}
+
 function initDragAndDrop() {
-    _draggingCard = null;
-    _draggingSourceGrid = null;
-    _currentDragGrid = null;
-    _draggingSection = null;
+    // If a cross-collection drag is active (collection was switched mid-drag),
+    // don't reset card state — re-attach listeners to newly rendered buttons.
+    if (_crossCollectionLinkId) {
+        _attachCollectionHoverListeners(_crossCollectionLinkId);
+    } else {
+        _draggingCard = null;
+        _draggingSourceGrid = null;
+        _currentDragGrid = null;
+        _draggingSection = null;
+    }
 
     // Links: grids are recreated on every render so listeners stay fresh
     document.querySelectorAll('.links-grid').forEach(grid => {
@@ -887,38 +968,76 @@ function initDragAndDrop() {
             _draggingCard = card;
             _draggingSourceGrid = grid;
             _currentDragGrid = grid;
+            _crossCollectionLinkId = null;
             card.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
             // Required by Firefox to initiate element drag (not link-URL drag)
             e.dataTransfer.setData('text/plain', card.dataset.linkId);
+            document.body.classList.add('link-dragging');
+            _attachCollectionHoverListeners(parseInt(card.dataset.linkId));
         });
 
         grid.addEventListener('dragover', e => {
             e.preventDefault();
             if (!_draggingCard) return;
             if (_currentDragGrid !== grid) {
-                // Card is moving to a new grid: restore placeholder in the grid it's leaving
+                // Card is entering a new grid
                 if (_currentDragGrid && !_currentDragGrid.querySelector('.link-card[data-link-id]:not(.dragging)')) {
+                    // Restore "No links yet" in the grid being left
                     const p = document.createElement('p');
                     p.style.cssText = 'color: var(--color-text-muted); font-size: 14px;';
                     p.textContent = 'No links yet';
                     _currentDragGrid.appendChild(p);
                 }
-                // Remove placeholder from the grid being entered
                 grid.querySelector(':scope > p')?.remove();
                 _currentDragGrid = grid;
+                // Unhide card when it first enters a grid after cross-collection switch
+                _draggingCard.classList.remove('hidden-drag-source');
             }
             const after = getDragAfterElement(grid, e.clientX, e.clientY);
             if (after) grid.insertBefore(_draggingCard, after);
             else grid.appendChild(_draggingCard);
         });
 
+        // drop fires before dragend — use it to mark a successful cross-collection drop
+        grid.addEventListener('drop', e => {
+            if (_crossCollectionLinkId && _draggingCard) {
+                e.preventDefault();
+                _crossCollectionDropped = true;
+            }
+        });
+
         grid.addEventListener('dragend', async () => {
             if (!_draggingCard) return;
-            _draggingCard.classList.remove('dragging');
-            // Ensure source grid has its placeholder if it ended up empty
-            if (_draggingSourceGrid && !_draggingSourceGrid.querySelector('.link-card[data-link-id]')) {
-                _draggingSourceGrid.innerHTML = LINKS_EMPTY_HTML;
+
+            if (_crossCollectionLinkId) {
+                const linkId = _crossCollectionLinkId;
+                const dropped = _crossCollectionDropped;
+                _crossCollectionLinkId = null;
+                _crossCollectionDropped = false;
+                _cleanupDrag();
+                const card = _draggingCard;
+                const targetSectionId = parseInt(grid.dataset.sectionId);
+                card.classList.remove('dragging', 'hidden-drag-source');
+                _draggingCard = null; _draggingSourceGrid = null; _currentDragGrid = null;
+                if (dropped) {
+                    await moveLink(linkId, targetSectionId);
+                } else {
+                    // Drag cancelled after card entered a grid — remove it and reload
+                    card.remove();
+                    await loadDashboard(currentCollectionId);
+                }
+                return;
+            }
+
+            _cleanupDrag();
+            const card = _draggingCard;
+            const sourceGrid = _draggingSourceGrid;
+            card.classList.remove('dragging');
+
+            // Same-collection reorder
+            if (sourceGrid && !sourceGrid.querySelector('.link-card[data-link-id]')) {
+                sourceGrid.innerHTML = LINKS_EMPTY_HTML;
             }
             const sectionId = parseInt(grid.dataset.sectionId);
             const orderedIds = [...grid.querySelectorAll('.link-card[data-link-id]')]
@@ -957,6 +1076,8 @@ function initDragAndDrop() {
     }, { signal });
 
     container.addEventListener('dragover', e => {
+        // Allow drop cursor over section headers/gaps during cross-collection drag
+        if (_crossCollectionLinkId && !_draggingSection) { e.preventDefault(); return; }
         if (!_draggingSection) return;
         e.preventDefault();
         const after = getSectionAfterElement(container, e.clientY);
@@ -976,6 +1097,25 @@ function initDragAndDrop() {
             await loadDashboard(currentCollectionId);
         }
     }, { signal });
+}
+
+async function moveLink(linkId, targetSectionId) {
+    await apiRequest(`/links/${linkId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ section_id: targetSectionId }),
+    });
+    await loadDashboard(currentCollectionId);
+}
+
+async function copyLinkUrl(url, btn) {
+    try {
+        await navigator.clipboard.writeText(url);
+        const original = btn.innerHTML;
+        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+            <path d="M2.5 8.5L6 12L13.5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>`;
+        setTimeout(() => { btn.innerHTML = original; }, 1200);
+    } catch { /* clipboard not available */ }
 }
 
 function getSectionAfterElement(container, y) {

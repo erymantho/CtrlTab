@@ -413,6 +413,28 @@ body {
     outline-offset: 2px;
 }
 
+/* Drop-zones: andere collection-knoppen oplichten tijdens link-drag */
+.link-dragging .collections-list button[data-collection-id] {
+    border: 1px dashed var(--color-accent);
+    opacity: 0.7;
+    transition: opacity 0.15s, background 0.15s;
+}
+
+.collections-list button.collection-drop-hover {
+    opacity: 1 !important;
+    background: rgba(99, 102, 241, 0.12) !important;
+    border-color: var(--color-accent) !important;
+}
+
+/* Card hidden in body while collection switches mid-drag */
+.link-card.hidden-drag-source {
+    visibility: hidden;
+    position: fixed;
+    top: -9999px;
+    left: -9999px;
+    pointer-events: none;
+}
+
 .link-favicon {
     width: 32px;
     height: 32px;
@@ -470,6 +492,7 @@ body {
     top: var(--spacing-sm);
     right: var(--spacing-sm);
     display: flex;
+    flex-direction: column;
     gap: var(--spacing-xs);
     opacity: 0;
     transition: opacity 0.3s ease;
