@@ -49,7 +49,31 @@ async function loadUserPreferences() {
             localStorage.removeItem('ctrltab-accent');
         }
         applyAccentColor(_accentColor);
+        _backgroundImage = prefs.backgroundImage || null;
+        if (_backgroundImage) {
+            localStorage.setItem('ctrltab-bg', _backgroundImage);
+        } else {
+            localStorage.removeItem('ctrltab-bg');
+        }
+        _backgroundDim = prefs.backgroundDim !== false;
+        localStorage.setItem('ctrltab-bg-dim', _backgroundDim ? '1' : '0');
+        applyBackgroundImage(_backgroundImage);
+        applyBackgroundDim(_backgroundDim);
     } catch {}
+}
+
+function applyBackgroundImage(url) {
+    if (url) {
+        document.documentElement.style.setProperty('--user-bg', `url("${url}")`);
+        document.documentElement.classList.add('has-user-bg');
+    } else {
+        document.documentElement.style.removeProperty('--user-bg');
+        document.documentElement.classList.remove('has-user-bg');
+    }
+}
+
+function applyBackgroundDim(dim) {
+    document.documentElement.classList.toggle('has-user-bg-dim', !!dim);
 }
 
 function updateAccentPreview(color) {
@@ -160,6 +184,8 @@ function setOpenInNewTab(enabled) {
 
 // Apply theme and accent color immediately to prevent flash
 let _accentColor = null;
+let _backgroundImage = null;
+let _backgroundDim = true;
 const ACCENT_PRESETS = ['#e2003d', '#e8650a', '#d4a017', '#198754', '#0d6efd', '#6f42c1', '#d63384'];
 initTheme();
 _accentColor = localStorage.getItem('ctrltab-accent') || null;
@@ -541,6 +567,31 @@ function showSettings() {
                     </div>
                     <span class="theme-card-label">Batman</span>
                 </button>
+            </div>
+            <div class="bg-image-section">
+                <span class="accent-color-label">Background image</span>
+                <div class="bg-image-controls">
+                    ${_backgroundImage ? '' : `
+                        <span class="bg-image-none">No background set</span>
+                    `}
+                    <label class="btn-secondary bg-upload-label">
+                        ${_backgroundImage ? 'Change' : 'Upload'}
+                        <input type="file" accept="image/jpeg,image/png,image/bmp,image/gif"
+                               style="display:none" onchange="handleBgUpload(this)">
+                    </label>
+                    ${_backgroundImage ? `
+                        <button class="btn-text-danger" onclick="removeBgImage()">Remove</button>
+                    ` : ''}
+                </div>
+                ${_backgroundImage ? `
+                    <div class="toggle-label" style="margin-top: var(--spacing-sm);">
+                        <label class="toggle-switch">
+                            <input type="checkbox" ${_backgroundDim ? 'checked' : ''} onchange="handleBgDimToggle(this.checked)">
+                            <span class="toggle-track"></span>
+                        </label>
+                        <span>Dim background</span>
+                    </div>
+                ` : ''}
             </div>
             ${currentTheme !== 'cyberpunk' && currentTheme !== 'batman' ? `<div class="accent-color-section">
                 <span class="accent-color-label">Accent color</span>
@@ -1423,6 +1474,52 @@ function removeIcon() {
     const wrap = document.getElementById('faviconPreviewBox');
     wrap.innerHTML = `<span id="faviconPreviewImg" class="icon-preview-placeholder">${_faviconPlaceholderSvg}</span>`;
     document.getElementById('faviconRemoveBtn').style.display = 'none';
+}
+
+async function handleBgUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+    input.value = '';
+    try {
+        const formData = new FormData();
+        formData.append('background', file);
+        const res = await fetch('/api/upload/background', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+            body: formData,
+        });
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || 'Upload failed');
+        }
+        const { url } = await res.json();
+        _backgroundImage = url;
+        localStorage.setItem('ctrltab-bg', url);
+        applyBackgroundImage(url);
+        await apiRequest('/auth/preferences', { method: 'PUT', body: JSON.stringify({ backgroundImage: url }) });
+        showSettings();
+    } catch (err) {
+        alert(err.message || 'Failed to upload background');
+    }
+}
+
+async function handleBgDimToggle(checked) {
+    _backgroundDim = checked;
+    localStorage.setItem('ctrltab-bg-dim', checked ? '1' : '0');
+    applyBackgroundDim(checked);
+    try {
+        await apiRequest('/auth/preferences', { method: 'PUT', body: JSON.stringify({ backgroundDim: checked }) });
+    } catch {}
+}
+
+async function removeBgImage() {
+    _backgroundImage = null;
+    localStorage.removeItem('ctrltab-bg');
+    applyBackgroundImage(null);
+    try {
+        await apiRequest('/auth/preferences', { method: 'PUT', body: JSON.stringify({ backgroundImage: null }) });
+    } catch {}
+    showSettings();
 }
 
 function showAddLinkModal(sectionId) {

@@ -39,6 +39,27 @@ const upload = multer({
   }
 });
 
+const uploadBg = multer({
+  storage: multer.diskStorage({
+    destination: UPLOADS_DIR,
+    filename: (req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      cb(null, `${crypto.randomUUID()}${ext}`);
+    }
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowedExts = ['.jpg', '.jpeg', '.png', '.bmp', '.gif'];
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/bmp', 'image/gif'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedExts.includes(ext) || allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('INVALID_TYPE'));
+    }
+  }
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -221,7 +242,7 @@ app.get('/api/auth/preferences', authenticateToken, (req, res) => {
 });
 
 app.put('/api/auth/preferences', authenticateToken, (req, res) => {
-  const { accentColor } = req.body;
+  const { accentColor, backgroundImage, backgroundDim } = req.body;
   if (accentColor !== null && accentColor !== undefined) {
     if (!/^#[0-9a-fA-F]{6}$/.test(accentColor)) {
       return res.status(400).json({ error: 'Invalid accent color, expected #rrggbb' });
@@ -231,8 +252,16 @@ app.put('/api/auth/preferences', authenticateToken, (req, res) => {
   const prefs = JSON.parse(user?.preferences || '{}');
   if (accentColor) {
     prefs.accentColor = accentColor;
-  } else {
+  } else if (accentColor === null) {
     delete prefs.accentColor;
+  }
+  if (backgroundImage) {
+    prefs.backgroundImage = backgroundImage;
+  } else if (backgroundImage === null) {
+    delete prefs.backgroundImage;
+  }
+  if (backgroundDim !== undefined) {
+    prefs.backgroundDim = backgroundDim !== false;
   }
   db.prepare('UPDATE users SET preferences = ? WHERE id = ?').run(JSON.stringify(prefs), req.user.id);
   res.json(prefs);
@@ -446,6 +475,19 @@ async function fetchFavicon(siteUrl) {
     return null;
   }
 }
+
+// ─── Background Upload ────────────────────────────────────────────
+app.post('/api/upload/background', authenticateToken, (req, res, next) => {
+  uploadBg.single('background')(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'File too large (max 5 MB)' });
+      if (err.message === 'INVALID_TYPE') return res.status(400).json({ error: 'Invalid file type. Use JPG, PNG, BMP, or GIF.' });
+      return res.status(400).json({ error: err.message || 'Upload failed' });
+    }
+    if (!req.file) return res.status(400).json({ error: 'No valid file uploaded. Use JPG, PNG, BMP, or GIF (max 5 MB).' });
+    res.json({ url: `/api/uploads/${req.file.filename}` });
+  });
+});
 
 // ─── Icon Upload ──────────────────────────────────────────────────
 app.post('/api/upload/icon', authenticateToken, (req, res, next) => {

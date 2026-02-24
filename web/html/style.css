@@ -96,6 +96,31 @@ body {
     display: none;
 }
 
+/* Custom user background image */
+.has-user-bg body {
+    background-image: var(--user-bg);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.has-user-bg.has-user-bg-dim body {
+    background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), var(--user-bg);
+    background-size: auto, cover;
+}
+
+/* Batman: replace batman-background.jpg with user bg */
+html.has-user-bg[data-theme="batman"] .grid-background {
+    background: var(--user-bg) center center / cover no-repeat;
+}
+
+html.has-user-bg.has-user-bg-dim[data-theme="batman"] .grid-background {
+    background:
+        linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.55)),
+        var(--user-bg) center center / cover no-repeat;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    Layout
    ═══════════════════════════════════════════════════════════════ */
@@ -1100,8 +1125,6 @@ body {
 /* Accent color preset palette */
 .accent-color-section {
     margin-top: var(--spacing-md);
-    padding-top: var(--spacing-md);
-    border-top: 1px solid var(--color-bg-tertiary);
 }
 
 .accent-color-label {
@@ -1164,6 +1187,42 @@ body {
     align-items: center;
     justify-content: center;
     pointer-events: none;
+}
+
+/* Background image settings */
+.bg-image-section {
+    margin-top: var(--spacing-md);
+}
+
+.bg-image-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.bg-image-preview {
+    width: 80px;
+    height: 45px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--color-bg-tertiary);
+    flex-shrink: 0;
+}
+
+.bg-image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.bg-image-none {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+.bg-upload-label {
+    cursor: pointer;
 }
 
 /* Settings field */
