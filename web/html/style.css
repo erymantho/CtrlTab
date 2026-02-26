@@ -1112,6 +1112,27 @@ html.has-user-bg.has-user-bg-dim[data-theme="batman"] .grid-background {
     border: 1px solid #3f3a36;
 }
 
+.theme-preview-oled {
+    background: #000000;
+}
+
+.theme-preview-oled .tp-sidebar {
+    width: 30%;
+    background: #000000;
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.theme-preview-oled .tp-bar {
+    height: 8px;
+    background: #000000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.theme-preview-oled .tp-card {
+    background: #0a0a0a;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 .tp-content {
     flex: 1;
     display: flex;

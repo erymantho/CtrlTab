@@ -541,6 +541,19 @@ function showSettings() {
                     </div>
                     <span class="theme-card-label">Dark</span>
                 </button>
+                <button class="theme-card ${currentTheme === 'oled' ? 'active' : ''}" data-theme-value="oled" onclick="setTheme('oled')">
+                    <div class="theme-preview theme-preview-oled">
+                        <div class="tp-sidebar"></div>
+                        <div class="tp-content">
+                            <div class="tp-bar"></div>
+                            <div class="tp-cards">
+                                <div class="tp-card"></div>
+                                <div class="tp-card"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="theme-card-label">OLED</span>
+                </button>
                 <button class="theme-card ${currentTheme === 'cyberpunk' ? 'active' : ''}" data-theme-value="cyberpunk" onclick="setTheme('cyberpunk')">
                     <div class="theme-preview theme-preview-cyberpunk">
                         <div class="tp-sidebar"></div>

@@ -101,8 +101,8 @@ ctrlTAB is now available at `http://localhost:8090`. Log in with your admin cred
 - [x] Per-user accent color with preset palette and custom picker
 - [x] PWA with offline support
 - [x] User accounts and authentication
-- [x] Drag & drop reordering of links and sections *- works, but buggy*
-- [ ] Drag links across collections *- works, but buggy*
+- [x] Drag & drop reordering of links and sections
+- [x] Drag links across sections and collections
 - [ ] Dutch language support
 - [ ] Descriptions for collections, sections, and links
 - [ ] Search across all links
