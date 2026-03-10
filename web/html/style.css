@@ -354,7 +354,6 @@ html.has-user-bg.has-user-bg-dim[data-theme="batman"] .grid-background {
 .lang-switcher {
     display: flex;
     gap: var(--spacing-xs);
-    margin-top: var(--spacing-sm);
 }
 
 .lang-btn {

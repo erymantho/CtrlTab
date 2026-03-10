@@ -722,10 +722,12 @@ function showSettings() {
                 </label>
                 <span>${t('pref.two_col')}</span>
             </div>
-            <div class="settings-label">${t('settings.language')}</div>
-            <div class="lang-switcher">
-                <button class="lang-btn ${_lang === 'en' ? 'active' : ''}" onclick="setLanguage('en')">EN</button>
-                <button class="lang-btn ${_lang === 'nl' ? 'active' : ''}" onclick="setLanguage('nl')">NL</button>
+            <div class="toggle-label">
+                <span>${t('settings.language')}</span>
+                <div class="lang-switcher">
+                    <button class="lang-btn ${_lang === 'en' ? 'active' : ''}" onclick="setLanguage('en')">EN</button>
+                    <button class="lang-btn ${_lang === 'nl' ? 'active' : ''}" onclick="setLanguage('nl')">NL</button>
+                </div>
             </div>
         </div>
     `;
@@ -785,7 +787,7 @@ function showSettings() {
                 <img class="github-logo" src="icons/github-logo.svg" alt="GitHub" width="14" height="14">
                 GitHub
             </a>
-            <div class="settings-version">v0.2</div>
+            <div class="settings-version">v1.0</div>
         </div>
     `;
 
