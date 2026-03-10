@@ -96,6 +96,27 @@ function toggleTwoColLayout(checked) {
     applyTwoColLayout(checked);
 }
 
+function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        el.placeholder = t(el.dataset.i18nPlaceholder);
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        el.title = t(el.dataset.i18nTitle);
+        el.setAttribute('aria-label', t(el.dataset.i18nTitle));
+    });
+    document.documentElement.lang = _lang;
+}
+
+function setLanguage(lang) {
+    _lang = lang;
+    localStorage.setItem('ctrltab-lang', lang);
+    applyTranslations();
+    if (currentView === 'settings') showSettings();
+}
+
 function updateAccentPreview(color) {
     applyAccentColor(color);
     const customBtn = document.querySelector('.accent-preset-custom');
@@ -535,7 +556,7 @@ function showSettings() {
     currentCollectionId = null;
     renderCollections();
 
-    elements.collectionTitle.textContent = 'Settings';
+    elements.collectionTitle.textContent = t('settings.title');
     elements.editCollectionBtn.style.display = 'none';
     elements.addSectionBtn.style.display = 'none';
     elements.settingsBackBtn.style.display = '';
@@ -548,7 +569,7 @@ function showSettings() {
     // Theme section
     html += `
         <div class="settings-section">
-            <h3 class="settings-section-title">Theme</h3>
+            <h3 class="settings-section-title">${t('settings.theme')}</h3>
             <div class="theme-cards">
                 <button class="theme-card ${currentTheme === 'light' ? 'active' : ''}" data-theme-value="light" onclick="setTheme('light')">
                     <div class="theme-preview theme-preview-light">
@@ -561,7 +582,7 @@ function showSettings() {
                             </div>
                         </div>
                     </div>
-                    <span class="theme-card-label">Light</span>
+                    <span class="theme-card-label">${t('theme.light')}</span>
                 </button>
                 <button class="theme-card ${currentTheme === 'dark' ? 'active' : ''}" data-theme-value="dark" onclick="setTheme('dark')">
                     <div class="theme-preview theme-preview-dark">
@@ -574,7 +595,7 @@ function showSettings() {
                             </div>
                         </div>
                     </div>
-                    <span class="theme-card-label">Dark</span>
+                    <span class="theme-card-label">${t('theme.dark')}</span>
                 </button>
                 <button class="theme-card ${currentTheme === 'oled' ? 'active' : ''}" data-theme-value="oled" onclick="setTheme('oled')">
                     <div class="theme-preview theme-preview-oled">
@@ -587,7 +608,7 @@ function showSettings() {
                             </div>
                         </div>
                     </div>
-                    <span class="theme-card-label">OLED</span>
+                    <span class="theme-card-label">${t('theme.oled')}</span>
                 </button>
                 <button class="theme-card ${currentTheme === 'cyberpunk' ? 'active' : ''}" data-theme-value="cyberpunk" onclick="setTheme('cyberpunk')">
                     <div class="theme-preview theme-preview-cyberpunk">
@@ -600,7 +621,7 @@ function showSettings() {
                             </div>
                         </div>
                     </div>
-                    <span class="theme-card-label">Cyberpunk</span>
+                    <span class="theme-card-label">${t('theme.cyberpunk')}</span>
                 </button>
                 <button class="theme-card ${currentTheme === 'batman' ? 'active' : ''}" data-theme-value="batman" onclick="setTheme('batman')">
                     <div class="theme-preview theme-preview-batman">
@@ -613,22 +634,22 @@ function showSettings() {
                             </div>
                         </div>
                     </div>
-                    <span class="theme-card-label">Batman</span>
+                    <span class="theme-card-label">${t('theme.batman')}</span>
                 </button>
             </div>
             <div class="bg-image-section">
-                <span class="accent-color-label">Background image</span>
+                <span class="accent-color-label">${t('settings.background_image')}</span>
                 <div class="bg-image-controls">
                     ${_backgroundImage ? '' : `
-                        <span class="bg-image-none">No background set</span>
+                        <span class="bg-image-none">${t('settings.no_background')}</span>
                     `}
                     <label class="btn-secondary bg-upload-label">
-                        ${_backgroundImage ? 'Change' : 'Upload'}
+                        ${_backgroundImage ? t('btn.change_bg') : t('btn.upload_bg')}
                         <input type="file" accept="image/jpeg,image/png,image/bmp,image/gif"
                                style="display:none" onchange="handleBgUpload(this)">
                     </label>
                     ${_backgroundImage ? `
-                        <button class="btn-text-danger" onclick="removeBgImage()">Remove</button>
+                        <button class="btn-text-danger" onclick="removeBgImage()">${t('btn.remove')}</button>
                     ` : ''}
                 </div>
                 ${_backgroundImage ? `
@@ -637,12 +658,12 @@ function showSettings() {
                             <input type="checkbox" ${_backgroundDim ? 'checked' : ''} onchange="handleBgDimToggle(this.checked)">
                             <span class="toggle-track"></span>
                         </label>
-                        <span>Dim background</span>
+                        <span>${t('settings.dim_background')}</span>
                     </div>
                 ` : ''}
             </div>
             ${currentTheme !== 'cyberpunk' && currentTheme !== 'batman' ? `<div class="accent-color-section">
-                <span class="accent-color-label">Accent color</span>
+                <span class="accent-color-label">${t('settings.accent_color')}</span>
                 <div class="accent-presets">
                     ${(() => {
                         const isCustom = !!_accentColor && !ACCENT_PRESETS.includes(_accentColor);
@@ -655,7 +676,7 @@ function showSettings() {
                                     title="${color}"></button>
                         `).join('') + `
                             <label class="accent-preset accent-preset-custom${isCustom ? ' active' : ''}"
-                                   title="Custom color"
+                                   title="${t('settings.custom_color')}"
                                    style="${isCustom ? `background:${_accentColor}` : ''}">
                                 <span class="accent-preset-custom-icon"${isCustom ? ' style="opacity:0"' : ''}>
                                     <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -679,27 +700,32 @@ function showSettings() {
     const openInNewTab = getOpenInNewTab();
     html += `
         <div class="settings-section">
-            <h3 class="settings-section-title">Preferences</h3>
+            <h3 class="settings-section-title">${t('settings.preferences')}</h3>
             <div class="toggle-label">
                 <label class="toggle-switch">
                     <input type="checkbox" id="openNewTabCheckbox" ${openInNewTab ? 'checked' : ''} onchange="setOpenInNewTab(this.checked)">
                     <span class="toggle-track"></span>
                 </label>
-                <span>Open links in new tab</span>
+                <span>${t('pref.open_new_tab')}</span>
             </div>
             <div class="toggle-label">
                 <label class="toggle-switch">
                     <input type="checkbox" ${_showLinkUrls ? 'checked' : ''} onchange="toggleShowLinkUrls(this.checked)">
                     <span class="toggle-track"></span>
                 </label>
-                <span>Show URL in link cards</span>
+                <span>${t('pref.show_url')}</span>
             </div>
             <div class="toggle-label">
                 <label class="toggle-switch">
                     <input type="checkbox" ${_twoColLayout ? 'checked' : ''} onchange="toggleTwoColLayout(this.checked)">
                     <span class="toggle-track"></span>
                 </label>
-                <span>Two-column section layout</span>
+                <span>${t('pref.two_col')}</span>
+            </div>
+            <div class="settings-label">${t('settings.language')}</div>
+            <div class="lang-switcher">
+                <button class="lang-btn ${_lang === 'en' ? 'active' : ''}" onclick="setLanguage('en')">EN</button>
+                <button class="lang-btn ${_lang === 'nl' ? 'active' : ''}" onclick="setLanguage('nl')">NL</button>
             </div>
         </div>
     `;
@@ -708,9 +734,9 @@ function showSettings() {
     if (isAdmin()) {
         html += `
             <div class="settings-section">
-                <h3 class="settings-section-title">User Management</h3>
+                <h3 class="settings-section-title">${t('admin.user_management')}</h3>
                 <div id="usersTableContainer">
-                    <div style="color: var(--color-text-muted);">Loading users...</div>
+                    <div style="color: var(--color-text-muted);">${t('admin.loading_users')}</div>
                 </div>
             </div>
         `;
@@ -719,33 +745,33 @@ function showSettings() {
     // Account section
     html += `
         <div class="settings-section">
-            <h3 class="settings-section-title">Account</h3>
+            <h3 class="settings-section-title">${t('settings.account')}</h3>
             <div class="settings-field">
-                <span class="settings-field-label">Username</span>
+                <span class="settings-field-label">${t('account.username')}</span>
                 <span class="settings-field-value">${user ? escapeHtml(user.username) : ''}</span>
             </div>
             <div class="settings-field">
-                <span class="settings-field-label">Role</span>
+                <span class="settings-field-label">${t('account.role')}</span>
                 <span class="settings-field-value">
                     <span class="badge ${user && user.is_admin ? 'badge-admin' : 'badge-user'}">
-                        ${user && user.is_admin ? 'Admin' : 'User'}
+                        ${user && user.is_admin ? t('account.role_admin') : t('account.role_user')}
                     </span>
                 </span>
             </div>
             <div class="settings-account-actions">
-                <button class="btn-secondary" onclick="showChangePasswordModal()">Change Password</button>
-                <button class="btn-danger" onclick="logout()">Logout</button>
+                <button class="btn-secondary" onclick="showChangePasswordModal()">${t('btn.change_password')}</button>
+                <button class="btn-danger" onclick="logout()">${t('btn.logout')}</button>
             </div>
         </div>
     `;
 
     html += `
         <div class="settings-section">
-            <h3 class="settings-section-title">Data</h3>
-            <div class="settings-label">Import from Linkwarden</div>
-            <div class="settings-hint">Upload a Linkwarden JSON export file. Each collection will be imported with one section ("Links").</div>
+            <h3 class="settings-section-title">${t('settings.data')}</h3>
+            <div class="settings-label">${t('import.linkwarden_title')}</div>
+            <div class="settings-hint">${t('import.linkwarden_hint')}</div>
             <label class="btn-secondary import-label" id="importLinkwardenLabel" style="margin-top: var(--spacing-sm); display: inline-flex;">
-                Choose file
+                ${t('btn.choose_file')}
                 <input type="file" accept=".json,application/json" style="display:none" onchange="handleLinkwardenImport(this)">
             </label>
             <div id="importStatus" class="import-status" style="display:none;"></div>
@@ -754,7 +780,7 @@ function showSettings() {
 
     html += `
         <div class="settings-footer">
-            Built by Michael Smith, with Claude Code
+            ${t('footer.credits')}
             <a href="https://github.com/erymantho/ctrlTAB" target="_blank" rel="noopener" class="github-link">
                 <img class="github-logo" src="icons/github-logo.svg" alt="GitHub" width="14" height="14">
                 GitHub
@@ -783,7 +809,7 @@ async function loadUsersTable() {
                 <td>${escapeHtml(user.username)}</td>
                 <td>
                     <span class="badge ${user.is_admin ? 'badge-admin' : 'badge-user'}">
-                        ${user.is_admin ? 'Admin' : 'User'}
+                        ${user.is_admin ? t('account.role_admin') : t('account.role_user')}
                     </span>
                 </td>
                 <td style="font-size: 12px; color: var(--color-text-muted);">
@@ -791,12 +817,12 @@ async function loadUsersTable() {
                 </td>
                 <td>
                     <div style="display: flex; gap: var(--spacing-sm);">
-                        <button class="btn-icon" onclick="showEditUserModal(${user.id})" title="Edit">
+                        <button class="btn-icon" onclick="showEditUserModal(${user.id})" title="${t('btn.edit_user')}">
                             <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                                 <path d="M11.333 2A1.886 1.886 0 0 1 14 4.667l-9 9-3.667 1 1-3.667 9-9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
-                        <button class="btn-icon btn-icon-danger" onclick="confirmDeleteUser(${user.id}, '${escapeHtml(user.username)}')" title="Delete">
+                        <button class="btn-icon btn-icon-danger" onclick="confirmDeleteUser(${user.id}, '${escapeHtml(user.username)}')" title="${t('btn.delete_user')}">
                             <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                                 <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 0 1 1.334-1.334h2.666a1.333 1.333 0 0 1 1.334 1.334V4m2 0v9.333a1.333 1.333 0 0 1-1.334 1.334H4.667a1.333 1.333 0 0 1-1.334-1.334V4h9.334Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
@@ -812,23 +838,23 @@ async function loadUsersTable() {
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    Add User
+                    ${t('btn.add_user')}
                 </button>
             </div>
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>Username</th>
-                        <th>Role</th>
-                        <th>Created</th>
-                        <th>Actions</th>
+                        <th>${t('admin.col_username')}</th>
+                        <th>${t('admin.col_role')}</th>
+                        <th>${t('admin.col_created')}</th>
+                        <th>${t('admin.col_actions')}</th>
                     </tr>
                 </thead>
                 <tbody>${rows}</tbody>
             </table>
         `;
     } catch (error) {
-        container.innerHTML = '<div style="color: var(--color-text-muted);">Failed to load users</div>';
+        container.innerHTML = `<div style="color: var(--color-text-muted);">${t('error.load_users')}</div>`;
     }
 }
 
@@ -847,7 +873,7 @@ async function loadDashboard(collectionId) {
         elements.sectionsContainer.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">⚠️</div>
-                <p>Failed to load collection</p>
+                <p>${t('error.load_collection')}</p>
             </div>
         `;
     } finally {
@@ -862,7 +888,7 @@ function renderSections(sections) {
         elements.sectionsContainer.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">📑</div>
-                <p>No sections yet. Click "Add Section" to get started.</p>
+                <p>${t('section.empty')}</p>
             </div>
         `;
         elements.sectionsContainer.classList.add('sections-enter');
@@ -878,25 +904,25 @@ function renderSections(sections) {
                 <div class="section-header" draggable="true">
                     <h3 class="section-title">${escapeHtml(section.name)}</h3>
                     <div class="section-actions">
-                        <button class="btn-icon btn-icon--labeled" onclick="showAddLinkModal(${section.id})" title="Add link">
+                        <button class="btn-icon btn-icon--labeled" onclick="showAddLinkModal(${section.id})" title="${t('btn.add_link')}">
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                 <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                             </svg>
-                            <span>Add link</span>
+                            <span>${t('btn.add_link')}</span>
                         </button>
                         ${links.length > 1 ? `
-                        <button class="btn-icon btn-icon--labeled" onclick="sortSectionAlpha(${section.id})" title="Sort A-Z">
+                        <button class="btn-icon btn-icon--labeled" onclick="sortSectionAlpha(${section.id})" title="${t('btn.sort_alpha')}">
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                 <path d="M2 4h7M2 8h5M2 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                                 <path d="M11 3l2 2 2-2M13 5V13M11 11l2 2 2-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            <span>Sort A-Z</span>
+                            <span>${t('btn.sort_alpha')}</span>
                         </button>` : ''}
-                        <button class="btn-icon btn-icon--labeled" onclick="showEditSectionModal(${section.id}, '${escapeHtml(section.name)}')" title="Edit section">
+                        <button class="btn-icon btn-icon--labeled" onclick="showEditSectionModal(${section.id}, '${escapeHtml(section.name)}')" title="${t('section.edit')}">
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                 <path d="M11.333 2A1.886 1.886 0 0 1 14 4.667l-9 9-3.667 1 1-3.667 9-9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            <span>Edit section</span>
+                            <span>${t('section.edit')}</span>
                         </button>
                     </div>
                 </div>
@@ -956,7 +982,7 @@ function onFaviconError(img) {
 
 function renderLinks(links, sectionId) {
     if (links.length === 0) {
-        return '<p style="color: var(--color-text-muted); font-size: 14px;">No links yet</p>';
+        return `<p style="color: var(--color-text-muted); font-size: 14px;">${t('link.empty')}</p>`;
     }
 
     const target = getOpenInNewTab() ? ' target="_blank"' : '';
@@ -979,12 +1005,12 @@ function renderLinks(links, sectionId) {
                     <div class="link-url">${escapeHtml(displayUrl)}</div>
                 </div>
                 <div class="link-actions" onclick="event.preventDefault(); event.stopPropagation();">
-                    <button class="btn-icon" onclick="showEditLinkModal(${link.id}, ${link.section_id}, '${escapeHtml(link.title)}', '${escapeHtml(link.url)}', '${escapeHtml(link.favicon || '')}')" title="Edit link">
+                    <button class="btn-icon" onclick="showEditLinkModal(${link.id}, ${link.section_id}, '${escapeHtml(link.title)}', '${escapeHtml(link.url)}', '${escapeHtml(link.favicon || '')}')" title="${t('btn.edit_link')}">
                         <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                             <path d="M11.333 2A1.886 1.886 0 0 1 14 4.667l-9 9-3.667 1 1-3.667 9-9Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
-                    <button class="btn-icon" onclick="copyLinkUrl('${escapeHtml(link.url)}', this)" title="Copy URL">
+                    <button class="btn-icon" onclick="copyLinkUrl('${escapeHtml(link.url)}', this)" title="${t('btn.copy_url')}">
                         <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                             <rect x="5.5" y="2.5" width="8" height="10" rx="1" stroke="currentColor" stroke-width="1.5"/>
                             <path d="M5.5 4.5H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h6.5a1 1 0 0 0 1-1V12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -1032,7 +1058,7 @@ function renderSearchResults(q, results) {
     currentView = 'search';
     renderCollections();
 
-    elements.collectionTitle.textContent = `Search: "${q}"`;
+    elements.collectionTitle.textContent = t('search.title', { query: q });
     elements.editCollectionBtn.style.display = 'none';
     elements.addSectionBtn.style.display = 'none';
     elements.settingsBackBtn.style.display = 'none';
@@ -1041,7 +1067,7 @@ function renderSearchResults(q, results) {
         elements.sectionsContainer.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">🔍</div>
-                <p>No results for "<strong>${escapeHtml(q)}</strong>"</p>
+                <p>${t('search.no_results', { query: escapeHtml(q) })}</p>
             </div>
         `;
         return;
@@ -1074,7 +1100,7 @@ function renderSearchResults(q, results) {
 
     elements.sectionsContainer.innerHTML = `
         <div class="search-results-container">
-            <p class="search-results-count">${results.length} result${results.length === 1 ? '' : 's'}</p>
+            <p class="search-results-count">${t('search.result_count', { n: results.length, plural: results.length === 1 ? '' : 's' })}</p>
             <div class="links-grid">${cards}</div>
         </div>
     `;
@@ -1118,7 +1144,7 @@ async function handleLinkwardenImport(input) {
 
     statusEl.style.display = '';
     statusEl.className = 'import-status import-status--loading';
-    statusEl.textContent = 'Importing…';
+    statusEl.textContent = t('import.importing');
     labelEl.style.pointerEvents = 'none';
 
     try {
@@ -1136,12 +1162,12 @@ async function handleLinkwardenImport(input) {
 
         const { imported } = data;
         statusEl.className = 'import-status import-status--success';
-        statusEl.textContent = `✓ Imported ${imported.collections} collection${imported.collections !== 1 ? 's' : ''}, ${imported.links} link${imported.links !== 1 ? 's' : ''}.`;
+        statusEl.textContent = t('import.success', { collections: imported.collections, c_plural: imported.collections !== 1 ? 's' : '', links: imported.links, l_plural: imported.links !== 1 ? 's' : '' });
 
         await loadCollections();
     } catch (err) {
         statusEl.className = 'import-status import-status--error';
-        statusEl.textContent = err.message || 'Import failed.';
+        statusEl.textContent = err.message || t('import.failed');
     } finally {
         labelEl.style.pointerEvents = '';
     }
@@ -1161,7 +1187,7 @@ let _dragCtrl = null;         // AbortController for all drag event listeners
 let _colHoverTimer = null;    // timer for hovering over a collection in the sidebar
 let _colHoverCtrl = null;     // AbortController for collection hover listeners
 
-const LINKS_EMPTY_HTML = '<p style="color: var(--color-text-muted); font-size: 14px;">No links yet</p>';
+const LINKS_EMPTY_HTML = () => `<p style="color: var(--color-text-muted); font-size: 14px;">${t('link.empty')}</p>`;
 
 function _stopColHover() {
     if (_colHoverCtrl) { _colHoverCtrl.abort(); _colHoverCtrl = null; }
@@ -1337,7 +1363,7 @@ function initDragAndDrop() {
                 // Restore "No links yet" in source section if it's now empty
                 const srcGrid = document.querySelector(`.links-grid[data-section-id="${srcSectionId}"]`);
                 if (srcGrid && !srcGrid.querySelector('.link-card[data-link-id]')) {
-                    srcGrid.innerHTML = LINKS_EMPTY_HTML;
+                    srcGrid.innerHTML = LINKS_EMPTY_HTML();
                 }
             }
             await reorderLinks(targetSectionId, orderedIds);
@@ -1399,15 +1425,15 @@ async function sortSectionAlpha(sectionId) {
 // ═══════════════════════════════════════════════════════════════
 
 function showAddCollectionModal() {
-    showModal('Add Collection', `
+    showModal(t('modal.add_collection'), `
         <form onsubmit="handleAddCollection(event)">
             <div class="form-group">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-input" name="name" placeholder="e.g., Work Projects" required autofocus>
+                <label class="form-label">${t('form.name_label')}</label>
+                <input type="text" class="form-input" name="name" placeholder="${t('form.collection_name_placeholder')}" required autofocus>
             </div>
             <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="hideModal()">Cancel</button>
-                <button type="submit" class="btn-primary">Create</button>
+                <button type="button" class="btn-secondary" onclick="hideModal()">${t('btn.cancel')}</button>
+                <button type="submit" class="btn-primary">${t('btn.create')}</button>
             </div>
         </form>
     `);
@@ -1424,7 +1450,7 @@ async function handleAddCollection(event) {
         await loadCollections();
         hideModal();
     } catch (error) {
-        alert('Failed to create collection');
+        alert(t('error.create_collection'));
     } finally {
         hideLoading();
     }
@@ -1434,19 +1460,19 @@ function showEditCollectionModal() {
     const collection = collections.find(c => c.id === currentCollectionId);
     if (!collection) return;
 
-    showModal('Edit Collection', `
+    showModal(t('modal.edit_collection'), `
         <form onsubmit="handleEditCollection(event)">
             <div class="form-group">
-                <label class="form-label">Name</label>
+                <label class="form-label">${t('form.name_label')}</label>
                 <input type="text" class="form-input" name="name" value="${escapeHtml(collection.name)}" required autofocus>
             </div>
             <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="hideModal()">Cancel</button>
-                <button type="submit" class="btn-primary">Save</button>
+                <button type="button" class="btn-secondary" onclick="hideModal()">${t('btn.cancel')}</button>
+                <button type="submit" class="btn-primary">${t('btn.save')}</button>
             </div>
         </form>
         <div class="modal-danger-zone">
-            <button type="button" class="btn-text-danger" onclick="confirmDeleteCollection()">Delete this collection</button>
+            <button type="button" class="btn-text-danger" onclick="confirmDeleteCollection()">${t('modal.delete_collection')}</button>
         </div>
     `);
 }
@@ -1463,7 +1489,7 @@ async function handleEditCollection(event) {
         await loadDashboard(currentCollectionId);
         hideModal();
     } catch (error) {
-        alert('Failed to update collection');
+        alert(t('error.update_collection'));
     } finally {
         hideLoading();
     }
@@ -1473,15 +1499,15 @@ function confirmDeleteCollection() {
     const collection = collections.find(c => c.id === currentCollectionId);
     if (!collection) return;
 
-    showModal('Delete Collection', `
+    showModal(t('modal.delete_collection'), `
         <p style="margin-bottom: var(--spacing-lg); color: var(--color-text-secondary);">
-            Are you sure you want to delete "<strong>${escapeHtml(collection.name)}</strong>"?
+            ${t('confirm.delete_collection', { name: escapeHtml(collection.name) })}
             <br><br>
-            This will permanently delete all sections and links in this collection.
+            ${t('confirm.delete_collection_warning')}
         </p>
         <div class="form-actions">
-            <button type="button" class="btn-secondary" onclick="hideModal()">Cancel</button>
-            <button type="button" class="btn-danger" onclick="handleDeleteCollection()">Delete</button>
+            <button type="button" class="btn-secondary" onclick="hideModal()">${t('btn.cancel')}</button>
+            <button type="button" class="btn-danger" onclick="handleDeleteCollection()">${t('btn.delete')}</button>
         </div>
     `);
 }
@@ -1496,12 +1522,12 @@ async function handleDeleteCollection() {
         elements.sectionsContainer.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">⌘</div>
-                <p>Create your first collection</p>
+                <p>${t('collection.empty')}</p>
                 <button class="btn-primary" onclick="showAddCollectionModal()" style="margin-top: var(--spacing-lg);">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                     </svg>
-                    New Collection
+                    ${t('collection.empty_btn')}
                 </button>
             </div>
         `;
@@ -1509,7 +1535,7 @@ async function handleDeleteCollection() {
         elements.addSectionBtn.style.display = 'none';
         hideModal();
     } catch (error) {
-        alert('Failed to delete collection');
+        alert(t('error.delete_collection'));
     } finally {
         hideLoading();
     }
@@ -1520,15 +1546,15 @@ async function handleDeleteCollection() {
 // ═══════════════════════════════════════════════════════════════
 
 function showAddSectionModal() {
-    showModal('Add Section', `
+    showModal(t('modal.add_section'), `
         <form onsubmit="handleAddSection(event)">
             <div class="form-group">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-input" name="name" placeholder="e.g., Documentation" required autofocus>
+                <label class="form-label">${t('form.name_label')}</label>
+                <input type="text" class="form-input" name="name" placeholder="${t('form.section_name_placeholder')}" required autofocus>
             </div>
             <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="hideModal()">Cancel</button>
-                <button type="submit" class="btn-primary">Create</button>
+                <button type="button" class="btn-secondary" onclick="hideModal()">${t('btn.cancel')}</button>
+                <button type="submit" class="btn-primary">${t('btn.create')}</button>
             </div>
         </form>
     `);
@@ -1545,26 +1571,26 @@ async function handleAddSection(event) {
         await loadDashboard(currentCollectionId);
         hideModal();
     } catch (error) {
-        alert('Failed to create section');
+        alert(t('error.create_section'));
     } finally {
         hideLoading();
     }
 }
 
 function showEditSectionModal(sectionId, currentName) {
-    showModal('Edit Section', `
+    showModal(t('modal.edit_section'), `
         <form onsubmit="handleEditSection(event, ${sectionId})">
             <div class="form-group">
-                <label class="form-label">Name</label>
+                <label class="form-label">${t('form.name_label')}</label>
                 <input type="text" class="form-input" name="name" value="${currentName}" required autofocus>
             </div>
             <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="hideModal()">Cancel</button>
-                <button type="submit" class="btn-primary">Save</button>
+                <button type="button" class="btn-secondary" onclick="hideModal()">${t('btn.cancel')}</button>
+                <button type="submit" class="btn-primary">${t('btn.save')}</button>
             </div>
         </form>
         <div class="modal-danger-zone">
-            <button type="button" class="btn-text-danger" onclick="confirmDeleteSection(${sectionId})">Delete this section</button>
+            <button type="button" class="btn-text-danger" onclick="confirmDeleteSection(${sectionId})">${t('modal.delete_section')}</button>
         </div>
     `);
 }
@@ -1580,22 +1606,22 @@ async function handleEditSection(event, sectionId) {
         await loadDashboard(currentCollectionId);
         hideModal();
     } catch (error) {
-        alert('Failed to update section');
+        alert(t('error.update_section'));
     } finally {
         hideLoading();
     }
 }
 
 function confirmDeleteSection(sectionId) {
-    showModal('Delete Section', `
+    showModal(t('modal.delete_section'), `
         <p style="margin-bottom: var(--spacing-lg); color: var(--color-text-secondary);">
-            Are you sure you want to delete this section?
+            ${t('confirm.delete_section')}
             <br><br>
-            This will permanently delete all links in this section.
+            ${t('confirm.delete_section_warning')}
         </p>
         <div class="form-actions">
-            <button type="button" class="btn-secondary" onclick="hideModal()">Cancel</button>
-            <button type="button" class="btn-danger" onclick="handleDeleteSection(${sectionId})">Delete</button>
+            <button type="button" class="btn-secondary" onclick="hideModal()">${t('btn.cancel')}</button>
+            <button type="button" class="btn-danger" onclick="handleDeleteSection(${sectionId})">${t('btn.delete')}</button>
         </div>
     `);
 }
@@ -1607,7 +1633,7 @@ async function handleDeleteSection(sectionId) {
         await loadDashboard(currentCollectionId);
         hideModal();
     } catch (error) {
-        alert('Failed to delete section');
+        alert(t('error.delete_section'));
     } finally {
         hideLoading();
     }
@@ -1622,7 +1648,7 @@ function faviconFormGroup(currentValue = '') {
     const placeholderSvg = `<svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/><path d="M8 1.5C8 1.5 6 4 6 8s2 6.5 2 6.5M8 1.5C8 1.5 10 4 10 8s-2 6.5-2 6.5M1.5 8h13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>`;
     return `
         <div class="form-group">
-            <label class="form-label">Icon <span style="opacity:0.5;font-weight:400;">(optional)</span></label>
+            <label class="form-label">${t('form.icon_label')}</label>
             <input type="hidden" name="favicon" id="faviconHiddenInput" value="${escapeHtml(currentValue)}">
             <input type="file" id="faviconFileInput" accept=".png,.svg,.ico" style="display:none" onchange="handleIconUpload(this)">
             <div class="icon-upload-group">
@@ -1632,9 +1658,9 @@ function faviconFormGroup(currentValue = '') {
                         : `<span id="faviconPreviewImg" class="icon-preview-placeholder">${placeholderSvg}</span>`}
                 </div>
                 <div class="icon-upload-actions">
-                    <button type="button" class="btn-secondary" onclick="document.getElementById('faviconFileInput').click()">Upload icon</button>
-                    <button type="button" class="btn-text-danger" id="faviconRemoveBtn" style="${hasIcon ? '' : 'display:none'}" onclick="removeIcon()">Remove</button>
-                    <p class="icon-upload-hint">PNG, SVG or ICO &middot; max 2 MB</p>
+                    <button type="button" class="btn-secondary" onclick="document.getElementById('faviconFileInput').click()">${t('btn.upload_icon')}</button>
+                    <button type="button" class="btn-text-danger" id="faviconRemoveBtn" style="${hasIcon ? '' : 'display:none'}" onclick="removeIcon()">${t('btn.remove')}</button>
+                    <p class="icon-upload-hint">${t('form.icon_hint')}</p>
                 </div>
             </div>
         </div>`;
@@ -1712,20 +1738,20 @@ async function removeBgImage() {
 }
 
 function showAddLinkModal(sectionId) {
-    showModal('Add Link', `
+    showModal(t('modal.add_link'), `
         <form onsubmit="handleAddLink(event, ${sectionId})">
             <div class="form-group">
-                <label class="form-label">Title</label>
-                <input type="text" class="form-input" name="title" placeholder="e.g., GitHub" required autofocus>
+                <label class="form-label">${t('form.title_label')}</label>
+                <input type="text" class="form-input" name="title" placeholder="${t('form.link_title_placeholder')}" required autofocus>
             </div>
             <div class="form-group">
-                <label class="form-label">URL</label>
-                <input type="url" class="form-input" name="url" placeholder="https://github.com" required>
+                <label class="form-label">${t('form.url_label')}</label>
+                <input type="url" class="form-input" name="url" placeholder="${t('form.link_url_placeholder')}" required>
             </div>
             ${faviconFormGroup()}
             <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="hideModal()">Cancel</button>
-                <button type="submit" class="btn-primary">Create</button>
+                <button type="button" class="btn-secondary" onclick="hideModal()">${t('btn.cancel')}</button>
+                <button type="submit" class="btn-primary">${t('btn.create')}</button>
             </div>
         </form>
     `);
@@ -1744,31 +1770,31 @@ async function handleAddLink(event, sectionId) {
         await loadDashboard(currentCollectionId);
         hideModal();
     } catch (error) {
-        alert('Failed to create link');
+        alert(t('error.create_link'));
     } finally {
         hideLoading();
     }
 }
 
 function showEditLinkModal(linkId, sectionId, currentTitle, currentUrl, currentFavicon) {
-    showModal('Edit Link', `
+    showModal(t('modal.edit_link'), `
         <form onsubmit="handleEditLink(event, ${linkId})">
             <div class="form-group">
-                <label class="form-label">Title</label>
+                <label class="form-label">${t('form.title_label')}</label>
                 <input type="text" class="form-input" name="title" value="${currentTitle}" required autofocus>
             </div>
             <div class="form-group">
-                <label class="form-label">URL</label>
+                <label class="form-label">${t('form.url_label')}</label>
                 <input type="url" class="form-input" name="url" value="${currentUrl}" required>
             </div>
             ${faviconFormGroup(currentFavicon)}
             <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="hideModal()">Cancel</button>
-                <button type="submit" class="btn-primary">Save</button>
+                <button type="button" class="btn-secondary" onclick="hideModal()">${t('btn.cancel')}</button>
+                <button type="submit" class="btn-primary">${t('btn.save')}</button>
             </div>
         </form>
         <div class="modal-danger-zone">
-            <button type="button" class="btn-text-danger" onclick="confirmDeleteLink(${linkId})">Delete this link</button>
+            <button type="button" class="btn-text-danger" onclick="confirmDeleteLink(${linkId})">${t('modal.delete_link')}</button>
         </div>
     `);
 }
@@ -1786,20 +1812,20 @@ async function handleEditLink(event, linkId) {
         await loadDashboard(currentCollectionId);
         hideModal();
     } catch (error) {
-        alert('Failed to update link');
+        alert(t('error.update_link'));
     } finally {
         hideLoading();
     }
 }
 
 function confirmDeleteLink(linkId) {
-    showModal('Delete Link', `
+    showModal(t('modal.delete_link'), `
         <p style="margin-bottom: var(--spacing-lg); color: var(--color-text-secondary);">
-            Are you sure you want to delete this link?
+            ${t('confirm.delete_link')}
         </p>
         <div class="form-actions">
-            <button type="button" class="btn-secondary" onclick="hideModal()">Cancel</button>
-            <button type="button" class="btn-danger" onclick="handleDeleteLink(${linkId})">Delete</button>
+            <button type="button" class="btn-secondary" onclick="hideModal()">${t('btn.cancel')}</button>
+            <button type="button" class="btn-danger" onclick="handleDeleteLink(${linkId})">${t('btn.delete')}</button>
         </div>
     `);
 }
@@ -1811,7 +1837,7 @@ async function handleDeleteLink(linkId) {
         await loadDashboard(currentCollectionId);
         hideModal();
     } catch (error) {
-        alert('Failed to delete link');
+        alert(t('error.delete_link'));
     } finally {
         hideLoading();
     }
@@ -1822,24 +1848,24 @@ async function handleDeleteLink(linkId) {
 // ═══════════════════════════════════════════════════════════════
 
 function showChangePasswordModal() {
-    showModal('Change Password', `
+    showModal(t('modal.change_password'), `
         <form onsubmit="handleChangePassword(event)">
             <div class="form-group">
-                <label class="form-label">Current Password</label>
+                <label class="form-label">${t('form.current_password')}</label>
                 <input type="password" class="form-input" name="currentPassword" required autofocus>
             </div>
             <div class="form-group">
-                <label class="form-label">New Password</label>
+                <label class="form-label">${t('form.new_password')}</label>
                 <input type="password" class="form-input" name="newPassword" required minlength="6">
-                <small style="color: var(--color-text-muted); font-size: 12px;">Minimum 6 characters</small>
+                <small style="color: var(--color-text-muted); font-size: 12px;">${t('form.password_hint')}</small>
             </div>
             <div class="form-group">
-                <label class="form-label">Confirm New Password</label>
+                <label class="form-label">${t('form.confirm_password')}</label>
                 <input type="password" class="form-input" name="confirmPassword" required minlength="6">
             </div>
             <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="hideModal()">Cancel</button>
-                <button type="submit" class="btn-primary">Change Password</button>
+                <button type="button" class="btn-secondary" onclick="hideModal()">${t('btn.cancel')}</button>
+                <button type="submit" class="btn-primary">${t('btn.change_password')}</button>
             </div>
         </form>
     `);
@@ -1853,7 +1879,7 @@ async function handleChangePassword(event) {
     const confirmPassword = formData.get('confirmPassword');
 
     if (newPassword !== confirmPassword) {
-        alert('New passwords do not match');
+        alert(t('error.password_mismatch'));
         return;
     }
 
@@ -1865,10 +1891,10 @@ async function handleChangePassword(event) {
         });
         hideLoading();
         hideModal();
-        alert('Password changed successfully');
+        alert(t('success.password_changed'));
     } catch (error) {
         hideLoading();
-        alert('Failed to change password: ' + error.message);
+        alert(t('error.change_password') + ': ' + error.message);
     }
 }
 
@@ -1883,26 +1909,26 @@ async function refreshUsersInSettings() {
 }
 
 function showAddUserModal() {
-    showModal('Add User', `
+    showModal(t('modal.add_user'), `
         <form onsubmit="handleAddUser(event)">
             <div class="form-group">
-                <label class="form-label">Username</label>
+                <label class="form-label">${t('admin.col_username')}</label>
                 <input type="text" class="form-input" name="username" required autofocus>
             </div>
             <div class="form-group">
-                <label class="form-label">Password</label>
+                <label class="form-label">${t('form.password_label')}</label>
                 <input type="password" class="form-input" name="password" required minlength="6">
-                <small style="color: var(--color-text-muted); font-size: 12px;">Minimum 6 characters</small>
+                <small style="color: var(--color-text-muted); font-size: 12px;">${t('form.password_hint')}</small>
             </div>
             <div class="form-group">
                 <label class="form-label" style="display: flex; align-items: center; gap: var(--spacing-sm);">
                     <input type="checkbox" name="is_admin">
-                    Admin privileges
+                    ${t('form.admin_privileges')}
                 </label>
             </div>
             <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="refreshUsersInSettings()">Back</button>
-                <button type="submit" class="btn-primary">Create User</button>
+                <button type="button" class="btn-secondary" onclick="refreshUsersInSettings()">${t('btn.back')}</button>
+                <button type="submit" class="btn-primary">${t('btn.create_user')}</button>
             </div>
         </form>
     `);
@@ -1927,7 +1953,7 @@ async function handleAddUser(event) {
         refreshUsersInSettings();
     } catch (error) {
         hideLoading();
-        alert('Failed to create user: ' + error.message);
+        alert(t('error.create_user') + ': ' + error.message);
     }
 }
 
@@ -1938,33 +1964,33 @@ async function showEditUserModal(userId) {
         const user = users.find(u => u.id === userId);
         hideLoading();
 
-        if (!user) { alert('User not found'); return; }
+        if (!user) { alert(t('error.load_user')); return; }
 
-        showModal('Edit User', `
+        showModal(t('modal.edit_user'), `
             <form onsubmit="handleEditUser(event, ${userId})">
                 <div class="form-group">
-                    <label class="form-label">Username</label>
+                    <label class="form-label">${t('admin.col_username')}</label>
                     <input type="text" class="form-input" name="username" value="${escapeHtml(user.username)}" required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">New Password (leave empty to keep current)</label>
+                    <label class="form-label">${t('form.new_password_optional')}</label>
                     <input type="password" class="form-input" name="password" minlength="6">
                 </div>
                 <div class="form-group">
                     <label class="form-label" style="display: flex; align-items: center; gap: var(--spacing-sm);">
                         <input type="checkbox" name="is_admin" ${user.is_admin ? 'checked' : ''}>
-                        Admin privileges
+                        ${t('form.admin_privileges')}
                     </label>
                 </div>
                 <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="refreshUsersInSettings()">Back</button>
-                    <button type="submit" class="btn-primary">Save</button>
+                    <button type="button" class="btn-secondary" onclick="refreshUsersInSettings()">${t('btn.back')}</button>
+                    <button type="submit" class="btn-primary">${t('btn.save')}</button>
                 </div>
             </form>
         `);
     } catch (error) {
         hideLoading();
-        alert('Failed to load user');
+        alert(t('error.load_user'));
     }
 }
 
@@ -1990,20 +2016,20 @@ async function handleEditUser(event, userId) {
         refreshUsersInSettings();
     } catch (error) {
         hideLoading();
-        alert('Failed to update user: ' + error.message);
+        alert(t('error.update_user') + ': ' + error.message);
     }
 }
 
 function confirmDeleteUser(userId, username) {
-    showModal('Delete User', `
+    showModal(t('modal.delete_user'), `
         <p style="margin-bottom: var(--spacing-lg); color: var(--color-text-secondary);">
-            Are you sure you want to delete "<strong>${escapeHtml(username)}</strong>"?
+            ${t('confirm.delete_user', { name: escapeHtml(username) })}
             <br><br>
-            This will permanently delete all their collections, sections, and links.
+            ${t('confirm.delete_user_warning')}
         </p>
         <div class="form-actions">
-            <button type="button" class="btn-secondary" onclick="refreshUsersInSettings()">Cancel</button>
-            <button type="button" class="btn-danger" onclick="handleDeleteUser(${userId})">Delete</button>
+            <button type="button" class="btn-secondary" onclick="refreshUsersInSettings()">${t('btn.cancel')}</button>
+            <button type="button" class="btn-danger" onclick="handleDeleteUser(${userId})">${t('btn.delete')}</button>
         </div>
     `);
 }
@@ -2017,7 +2043,7 @@ async function handleDeleteUser(userId) {
         refreshUsersInSettings();
     } catch (error) {
         hideLoading();
-        alert('Failed to delete user: ' + error.message);
+        alert(t('error.delete_user') + ': ' + error.message);
     }
 }
 
@@ -2084,6 +2110,8 @@ if ('serviceWorker' in navigator) {
     const authenticated = await checkAuth();
     if (!authenticated) return;
 
+    _lang = detectLang();
+    applyTranslations();
     loadUserPreferences();
     loadCollections();
 })();

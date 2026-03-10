@@ -4,6 +4,7 @@
 
 A lightweight, self-hosted bookmark and link manager to organize your links into collections and sections. Built for nerds who want full control over their bookmarks without relying on browser extensions or third-party services.
 
+![Version](https://img.shields.io/badge/version-1.0.0-brightgreen)
 ![Docker](https://img.shields.io/badge/Docker-ready-blue?logo=docker)
 ![Node.js](https://img.shields.io/badge/Node.js-20-green?logo=node.js)
 ![SQLite](https://img.shields.io/badge/SQLite-database-003B57?logo=sqlite)
@@ -110,7 +111,7 @@ ctrlTAB is now available at `http://localhost:8090`. Log in with your admin cred
 - [x] Show/hide URL in link cards (user preference)
 - [x] Two-column section layout (user preference)
 - [x] Global search across all links and collections
-- [ ] Dutch language support
+- [x] Dutch language support (EN/NL, browser-language detection, user override in Settings)
 - [ ] Descriptions for collections, sections, and links
 - [x] Import from Linkwarden (JSON export)
 - [ ] Import/export (other formats: HTML bookmarks, Raindrop, Pocket)

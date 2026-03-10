@@ -2,6 +2,11 @@ const API_BASE = '/api';
 const loginForm = document.getElementById('loginForm');
 const loginError = document.getElementById('loginError');
 
+// i18n init
+_lang = detectLang();
+document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+document.documentElement.lang = _lang;
+
 function showError(msg) {
     loginError.textContent = msg;
     loginError.classList.add('visible');
@@ -25,7 +30,7 @@ loginForm.addEventListener('submit', async (e) => {
 
         if (!response.ok) {
             const err = await response.json().catch(() => ({}));
-            throw new Error(err.error || 'Login failed');
+            throw new Error(err.error || t('error.login_failed'));
         }
 
         const data = await response.json();

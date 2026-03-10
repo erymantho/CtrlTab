@@ -1,8 +1,9 @@
-const CACHE_VERSION = 'ctrltab-v3';
+const CACHE_VERSION = 'ctrltab-v4';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
     '/style.css',
+    '/i18n.js',
     '/app.js',
     '/manifest.json',
     '/icons/favicon.svg',
