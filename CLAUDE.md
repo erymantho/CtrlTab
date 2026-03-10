@@ -104,6 +104,7 @@ All routes except `/api/auth/login` and `/api/health` require a JWT Bearer token
 |--------|-------|-------------|
 | GET | `/api/dashboard/:collectionId` | All-in-one: collection + sections + links |
 | GET | `/api/search?q=...` | Search links by title/URL across all user's collections (min 2 chars, max 200 results) |
+| POST | `/api/import/linkwarden` | Import Linkwarden JSON export (`multipart/form-data`, field `file`, max 10 MB) |
 | POST | `/api/upload/icon` | Custom link icon (PNG/SVG/ICO, max 2 MB) |
 | POST | `/api/upload/background` | Background image (JPG/PNG/GIF, max 5 MB) |
 | GET | `/api/uploads/:filename` | Serve uploaded files |
@@ -151,6 +152,7 @@ let _colHoverTimer, _colHoverCtrl;
 | `renderSearchResults(q, results)` | Sets `currentView='search'`, renders link cards with breadcrumbs |
 | `clearSearch()` | Resets search state, navigates back to last collection |
 | `openFirstSearchResult()` | Clicks the first `.search-result-card` in the results |
+| `handleLinkwardenImport(input)` | Reads a Linkwarden JSON file, POSTs to `/api/import/linkwarden`, shows inline status, reloads sidebar |
 
 ### Favicon fallback chain
 When loading a link favicon, multiple sources are tried in order:
@@ -238,3 +240,4 @@ Admin credentials are checked and updated on every startup if env vars have chan
 - **`sort_order`** is used for ordering; reorder endpoints save the new order as integer indices
 - **Keyboard shortcuts:** `/` focuses the search input (when no input/modal is active), `Escape` clears search when `currentView === 'search'`
 - **Search:** sidebar search bar above the collections header; `Enter` in the search input opens the first result; clicking a collection always clears the search state
+- **Linkwarden import:** mapping is Linkwarden collection → ctrlTAB collection + one section named "Links"; sub-collections (parentID != null) are treated as top-level collections; tags are ignored; entire import runs in a single SQLite transaction

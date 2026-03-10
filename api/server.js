@@ -39,6 +39,18 @@ const upload = multer({
   }
 });
 
+const uploadJson = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/json' || path.extname(file.originalname).toLowerCase() === '.json') {
+      cb(null, true);
+    } else {
+      cb(new Error('INVALID_TYPE'));
+    }
+  }
+});
+
 const uploadBg = multer({
   storage: multer.diskStorage({
     destination: UPLOADS_DIR,
@@ -613,6 +625,67 @@ app.get('/api/search', authenticateToken, (req, res) => {
   `).all(req.user.id, pattern, pattern);
 
   res.json(results);
+});
+
+// ─── Linkwarden Import ────────────────────────────────────────────
+app.post('/api/import/linkwarden', authenticateToken, (req, res, next) => {
+  uploadJson.single('file')(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'File too large (max 10 MB)' });
+      if (err.message === 'INVALID_TYPE') return res.status(400).json({ error: 'Only JSON files are supported.' });
+      return res.status(400).json({ error: err.message || 'Upload failed' });
+    }
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+
+    let data;
+    try {
+      data = JSON.parse(req.file.buffer.toString('utf8'));
+    } catch {
+      return res.status(400).json({ error: 'Invalid JSON file.' });
+    }
+
+    if (!Array.isArray(data?.collections)) {
+      return res.status(400).json({ error: 'Invalid Linkwarden export format.' });
+    }
+
+    const importAll = db.transaction(() => {
+      const counts = { collections: 0, sections: 0, links: 0 };
+      const maxSort = db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM collections WHERE user_id = ?');
+
+      for (const col of data.collections) {
+        if (!col.name || !Array.isArray(col.links)) continue;
+
+        const sortOrder = maxSort.get(req.user.id).m + 1;
+        const newCol = db.prepare(
+          'INSERT INTO collections (name, sort_order, user_id) VALUES (?, ?, ?)'
+        ).run(col.name.slice(0, 255), sortOrder, req.user.id);
+        counts.collections++;
+
+        const newSec = db.prepare(
+          'INSERT INTO sections (collection_id, name, sort_order) VALUES (?, ?, ?)'
+        ).run(newCol.lastInsertRowid, 'Links', 0);
+        counts.sections++;
+
+        for (let i = 0; i < col.links.length; i++) {
+          const link = col.links[i];
+          if (!link.url) continue;
+          db.prepare(
+            'INSERT INTO links (section_id, title, url, favicon, sort_order) VALUES (?, ?, ?, ?, ?)'
+          ).run(newSec.lastInsertRowid, (link.name || link.url).slice(0, 2048), link.url.slice(0, 2048), null, i);
+          counts.links++;
+        }
+      }
+      return counts;
+    });
+
+    try {
+      const result = importAll();
+      res.json({ imported: result });
+    } catch (err) {
+      console.error('Import error:', err);
+      res.status(500).json({ error: 'Import failed: ' + err.message });
+    }
+  });
 });
 
 // ─── Health check ─────────────────────────────────────────────────

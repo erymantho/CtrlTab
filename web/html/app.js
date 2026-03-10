@@ -720,6 +720,19 @@ function showSettings() {
     `;
 
     html += `
+        <div class="settings-section">
+            <h3 class="settings-section-title">Data</h3>
+            <div class="settings-label">Import from Linkwarden</div>
+            <div class="settings-hint">Upload a Linkwarden JSON export file. Each collection will be imported with one section ("Links").</div>
+            <label class="btn-secondary import-label" id="importLinkwardenLabel" style="margin-top: var(--spacing-sm); display: inline-flex;">
+                Choose file
+                <input type="file" accept=".json,application/json" style="display:none" onchange="handleLinkwardenImport(this)">
+            </label>
+            <div id="importStatus" class="import-status" style="display:none;"></div>
+        </div>
+    `;
+
+    html += `
         <div class="settings-footer">
             Built by Michael Smith, with Claude Code
             <a href="https://github.com/erymantho/ctrlTAB" target="_blank" rel="noopener" class="github-link">
@@ -1069,6 +1082,49 @@ function clearSearch() {
 function openFirstSearchResult() {
     const first = elements.sectionsContainer.querySelector('.search-result-card');
     if (first) first.click();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Import
+// ═══════════════════════════════════════════════════════════════
+
+async function handleLinkwardenImport(input) {
+    const file = input.files[0];
+    input.value = '';
+    if (!file) return;
+
+    const statusEl = document.getElementById('importStatus');
+    const labelEl = document.getElementById('importLinkwardenLabel');
+
+    statusEl.style.display = '';
+    statusEl.className = 'import-status import-status--loading';
+    statusEl.textContent = 'Importing…';
+    labelEl.style.pointerEvents = 'none';
+
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch(`${API_BASE}/import/linkwarden`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+            body: formData,
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Import failed');
+
+        const { imported } = data;
+        statusEl.className = 'import-status import-status--success';
+        statusEl.textContent = `✓ Imported ${imported.collections} collection${imported.collections !== 1 ? 's' : ''}, ${imported.links} link${imported.links !== 1 ? 's' : ''}.`;
+
+        await loadCollections();
+    } catch (err) {
+        statusEl.className = 'import-status import-status--error';
+        statusEl.textContent = err.message || 'Import failed.';
+    } finally {
+        labelEl.style.pointerEvents = '';
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════

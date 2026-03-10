@@ -110,7 +110,8 @@ ctrlTAB is now available at `http://localhost:8090`. Log in with your admin cred
 - [x] Global search across all links and collections
 - [ ] Dutch language support
 - [ ] Descriptions for collections, sections, and links
-- [ ] Import/export (JSON, HTML bookmarks)
+- [x] Import from Linkwarden (JSON export)
+- [ ] Import/export (other formats: HTML bookmarks, Raindrop, Pocket)
 - [ ] Tags and filtering
 - [ ] Browser extension for quick saving
 - [ ] Keyboard shortcuts
