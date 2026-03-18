@@ -727,6 +727,7 @@ function showSettings() {
                 <div class="lang-switcher">
                     <button class="lang-btn ${_lang === 'en' ? 'active' : ''}" onclick="setLanguage('en')">EN</button>
                     <button class="lang-btn ${_lang === 'nl' ? 'active' : ''}" onclick="setLanguage('nl')">NL</button>
+                    <button class="lang-btn ${_lang === 'es' ? 'active' : ''}" onclick="setLanguage('es')">ES</button>
                 </div>
             </div>
         </div>
@@ -770,13 +771,37 @@ function showSettings() {
     html += `
         <div class="settings-section">
             <h3 class="settings-section-title">${t('settings.data')}</h3>
-            <div class="settings-label">${t('import.linkwarden_title')}</div>
+
+            <div class="settings-label">${t('export.title')}</div>
+            <div class="settings-hint">${t('export.hint')}</div>
+            <button class="btn-secondary" id="exportBtn" style="margin-top: var(--spacing-sm);" onclick="handleExport(this)">
+                ${t('btn.export_json')}
+            </button>
+            <div id="exportStatus" class="import-status" style="display:none;"></div>
+
+            <div class="settings-label" style="margin-top: var(--spacing-xl);">${t('import.ctrltab_title')}</div>
+            <div class="settings-hint">${t('import.ctrltab_hint')}</div>
+            <label class="btn-secondary import-label" id="importCtrlTabLabel" style="margin-top: var(--spacing-sm); display: inline-flex;">
+                ${t('btn.choose_file')}
+                <input type="file" accept=".json,application/json" style="display:none" onchange="handleCtrlTabImport(this)">
+            </label>
+            <div id="importCtrlTabStatus" class="import-status" style="display:none;"></div>
+
+            <div class="settings-label" style="margin-top: var(--spacing-xl);">${t('import.linkwarden_title')}</div>
             <div class="settings-hint">${t('import.linkwarden_hint')}</div>
             <label class="btn-secondary import-label" id="importLinkwardenLabel" style="margin-top: var(--spacing-sm); display: inline-flex;">
                 ${t('btn.choose_file')}
                 <input type="file" accept=".json,application/json" style="display:none" onchange="handleLinkwardenImport(this)">
             </label>
             <div id="importStatus" class="import-status" style="display:none;"></div>
+
+            <div class="settings-label" style="margin-top: var(--spacing-xl);">${t('import.bookmarks_title')}</div>
+            <div class="settings-hint">${t('import.bookmarks_hint')}</div>
+            <label class="btn-secondary import-label" id="importBookmarksLabel" style="margin-top: var(--spacing-sm); display: inline-flex;">
+                ${t('btn.choose_file')}
+                <input type="file" accept=".html,.htm,text/html" style="display:none" onchange="handleBookmarksImport(this)">
+            </label>
+            <div id="importBookmarksStatus" class="import-status" style="display:none;"></div>
         </div>
     `;
 
@@ -1133,17 +1158,42 @@ function openFirstSearchResult() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Import
+// Export / Import
 // ═══════════════════════════════════════════════════════════════
 
-async function handleLinkwardenImport(input) {
-    const file = input.files[0];
-    input.value = '';
-    if (!file) return;
+async function handleExport(btn) {
+    const statusEl = document.getElementById('exportStatus');
+    btn.disabled = true;
+    statusEl.style.display = '';
+    statusEl.className = 'import-status import-status--loading';
+    statusEl.textContent = t('export.exporting');
 
-    const statusEl = document.getElementById('importStatus');
-    const labelEl = document.getElementById('importLinkwardenLabel');
+    try {
+        const res = await apiRequest('/export');
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || t('export.failed'));
+        }
+        const blob = await res.blob();
+        const date = new Date().toISOString().split('T')[0];
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ctrltab-backup-${date}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        statusEl.style.display = 'none';
+    } catch (err) {
+        statusEl.className = 'import-status import-status--error';
+        statusEl.textContent = err.message || t('export.failed');
+    } finally {
+        btn.disabled = false;
+    }
+}
 
+async function _runImport(endpoint, file, labelId, statusId, reloadSidebar) {
+    const statusEl = document.getElementById(statusId);
+    const labelEl  = document.getElementById(labelId);
     statusEl.style.display = '';
     statusEl.className = 'import-status import-status--loading';
     statusEl.textContent = t('import.importing');
@@ -1152,27 +1202,50 @@ async function handleLinkwardenImport(input) {
     try {
         const formData = new FormData();
         formData.append('file', file);
-
-        const res = await fetch(`${API_BASE}/import/linkwarden`, {
+        const res = await fetch(`${API_BASE}${endpoint}`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${getAuthToken()}` },
             body: formData,
         });
-
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Import failed');
+        if (!res.ok) throw new Error(data.error || t('import.failed'));
 
         const { imported } = data;
         statusEl.className = 'import-status import-status--success';
-        statusEl.textContent = t('import.success', { collections: imported.collections, c_plural: imported.collections !== 1 ? 's' : '', links: imported.links, l_plural: imported.links !== 1 ? 's' : '' });
-
-        await loadCollections();
+        statusEl.textContent = t('import.success', {
+            collections: imported.collections,
+            c_plural: imported.collections !== 1 ? 's' : '',
+            links: imported.links,
+            l_plural: imported.links !== 1 ? 's' : ''
+        });
+        if (reloadSidebar) await loadCollections();
     } catch (err) {
         statusEl.className = 'import-status import-status--error';
         statusEl.textContent = err.message || t('import.failed');
     } finally {
         labelEl.style.pointerEvents = '';
     }
+}
+
+async function handleCtrlTabImport(input) {
+    const file = input.files[0];
+    input.value = '';
+    if (!file) return;
+    await _runImport('/import/ctrltab', file, 'importCtrlTabLabel', 'importCtrlTabStatus', true);
+}
+
+async function handleBookmarksImport(input) {
+    const file = input.files[0];
+    input.value = '';
+    if (!file) return;
+    await _runImport('/import/bookmarks', file, 'importBookmarksLabel', 'importBookmarksStatus', true);
+}
+
+async function handleLinkwardenImport(input) {
+    const file = input.files[0];
+    input.value = '';
+    if (!file) return;
+    await _runImport('/import/linkwarden', file, 'importLinkwardenLabel', 'importStatus', true);
 }
 
 // ═══════════════════════════════════════════════════════════════

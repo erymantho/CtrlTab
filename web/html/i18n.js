@@ -140,9 +140,20 @@ const TRANSLATIONS = {
     'btn.change_password':               'Change Password',
     'btn.logout':                        'Logout',
 
+    // ── Settings — data / export ─────────────────────────────────
+    'export.title':                      'Export data',
+    'export.hint':                       'Download all your collections, sections and links as a JSON backup file.',
+    'btn.export_json':                   'Export JSON',
+    'export.exporting':                  'Exporting\u2026',
+    'export.failed':                     'Export failed.',
+
     // ── Settings — data / import ────────────────────────────────
+    'import.ctrltab_title':              'Import ctrlTAB backup',
+    'import.ctrltab_hint':               'Restore collections from a previously exported ctrlTAB JSON backup.',
     'import.linkwarden_title':           'Import from Linkwarden',
     'import.linkwarden_hint':            'Upload a Linkwarden JSON export file. Each collection will be imported with one section (\u201cLinks\u201d).',
+    'import.bookmarks_title':            'Import browser bookmarks',
+    'import.bookmarks_hint':             'Import bookmarks from Chrome, Firefox, or any browser that exports the Netscape HTML format.',
     'btn.choose_file':                   'Choose file',
     'import.importing':                  'Importing\u2026',
     'import.success':                    '\u2713 Imported {collections} collection{c_plural}, {links} link{l_plural}.',
@@ -308,9 +319,20 @@ const TRANSLATIONS = {
     'btn.change_password':               'Wachtwoord wijzigen',
     'btn.logout':                        'Afmelden',
 
+    // ── Instellingen — gegevens / exporteren ─────────────────────
+    'export.title':                      'Gegevens exporteren',
+    'export.hint':                       'Download al je collecties, secties en links als JSON-back-upbestand.',
+    'btn.export_json':                   'JSON exporteren',
+    'export.exporting':                  'Exporteren\u2026',
+    'export.failed':                     'Exporteren mislukt.',
+
     // ── Instellingen — gegevens / import ─────────────────────────
+    'import.ctrltab_title':              'ctrlTAB back-up importeren',
+    'import.ctrltab_hint':               'Herstel collecties vanuit een eerder ge\u00ebxporteerde ctrlTAB JSON-back-up.',
     'import.linkwarden_title':           'Importeren uit Linkwarden',
     'import.linkwarden_hint':            'Upload een Linkwarden JSON-exportbestand. Elke collectie wordt ge\u00efmporteerd met \u00e9\u00e9n sectie (\u201cLinks\u201d).',
+    'import.bookmarks_title':            'Browserbladwijzers importeren',
+    'import.bookmarks_hint':             'Importeer bladwijzers uit Chrome, Firefox of een andere browser die Netscape HTML-formaat exporteert.',
     'btn.choose_file':                   'Bestand kiezen',
     'import.importing':                  'Importeren\u2026',
     'import.success':                    '\u2713 {collections} collectie{c_plural} en {links} link{l_plural} ge\u00efmporteerd.',
@@ -340,6 +362,185 @@ const TRANSLATIONS = {
     'btn.login':                         'Inloggen',
     'error.login_failed':                'Inloggen mislukt',
   },
+
+  // ─────────────────────────────────────────────────────────────
+  es: {
+    // ── Navegaci\u00f3n ───────────────────────────────────────────────
+    'nav.subtitle':                      'Gestor de enlaces',
+    'nav.collections_label':             'Colecciones',
+    'nav.search_placeholder':            'Buscar enlaces\u2026',
+    'nav.search_clear':                  'Borrar b\u00fasqueda',
+    'nav.settings':                      'Configuraci\u00f3n',
+    'nav.home_tooltip':                  'Ir a la \u00faltima colecci\u00f3n',
+
+    // ── Colecciones ──────────────────────────────────────────────
+    'btn.add_collection':                'Agregar colecci\u00f3n',
+    'collection.edit':                   'Editar colecci\u00f3n',
+    'collection.empty':                  'Crea tu primera colecci\u00f3n',
+    'collection.empty_btn':              'Nueva colecci\u00f3n',
+    'modal.add_collection':              'Agregar colecci\u00f3n',
+    'modal.edit_collection':             'Editar colecci\u00f3n',
+    'modal.delete_collection':           'Eliminar colecci\u00f3n',
+    'confirm.delete_collection':         '\u00bfEst\u00e1s seguro de que quieres eliminar \u201c{name}\u201d?',
+    'confirm.delete_collection_warning': 'Esto eliminar\u00e1 permanentemente todas las secciones y enlaces de esta colecci\u00f3n.',
+    'error.create_collection':           'Error al crear la colecci\u00f3n',
+    'error.update_collection':           'Error al actualizar la colecci\u00f3n',
+    'error.delete_collection':           'Error al eliminar la colecci\u00f3n',
+    'error.load_collection':             'Error al cargar la colecci\u00f3n',
+    'form.collection_name_placeholder':  'ej. Proyectos de trabajo',
+
+    // ── Secciones ────────────────────────────────────────────────
+    'btn.add_section':                   'Agregar secci\u00f3n',
+    'section.empty':                     'Sin secciones a\u00fan. Haz clic en \u201cAgregar secci\u00f3n\u201d para empezar.',
+    'section.edit':                      'Editar secci\u00f3n',
+    'modal.add_section':                 'Agregar secci\u00f3n',
+    'modal.edit_section':                'Editar secci\u00f3n',
+    'modal.delete_section':              'Eliminar secci\u00f3n',
+    'confirm.delete_section':            '\u00bfEst\u00e1s seguro de que quieres eliminar esta secci\u00f3n?',
+    'confirm.delete_section_warning':    'Esto eliminar\u00e1 permanentemente todos los enlaces de esta secci\u00f3n.',
+    'error.create_section':              'Error al crear la secci\u00f3n',
+    'error.update_section':              'Error al actualizar la secci\u00f3n',
+    'error.delete_section':              'Error al eliminar la secci\u00f3n',
+    'form.section_name_placeholder':     'ej. Documentaci\u00f3n',
+
+    // ── Enlaces ──────────────────────────────────────────────────
+    'btn.add_link':                      'Agregar enlace',
+    'btn.sort_alpha':                    'Ordenar A-Z',
+    'btn.edit_link':                     'Editar enlace',
+    'btn.copy_url':                      'Copiar URL',
+    'link.empty':                        'Sin enlaces a\u00fan',
+    'modal.add_link':                    'Agregar enlace',
+    'modal.edit_link':                   'Editar enlace',
+    'modal.delete_link':                 'Eliminar enlace',
+    'confirm.delete_link':               '\u00bfEst\u00e1s seguro de que quieres eliminar este enlace?',
+    'error.create_link':                 'Error al crear el enlace',
+    'error.update_link':                 'Error al actualizar el enlace',
+    'error.delete_link':                 'Error al eliminar el enlace',
+    'form.link_title_placeholder':       'ej. GitHub',
+    'form.link_url_placeholder':         'https://github.com',
+    'form.icon_label':                   'Icono (opcional)',
+    'form.icon_hint':                    'PNG, SVG o ICO \u00b7 m\u00e1x. 2 MB',
+    'btn.upload_icon':                   'Subir icono',
+
+    // ── Formulario compartido ────────────────────────────────────
+    'form.name_label':                   'Nombre',
+    'form.title_label':                  'T\u00edtulo',
+    'form.url_label':                    'URL',
+    'btn.cancel':                        'Cancelar',
+    'btn.create':                        'Crear',
+    'btn.save':                          'Guardar',
+    'btn.delete':                        'Eliminar',
+    'btn.remove':                        'Quitar',
+    'btn.back':                          'Volver',
+
+    // ── Configuraci\u00f3n — general ────────────────────────────────────
+    'settings.title':                    'Configuraci\u00f3n',
+    'settings.theme':                    'Tema',
+    'settings.preferences':              'Preferencias',
+    'settings.account':                  'Cuenta',
+    'settings.data':                     'Datos',
+    'settings.language':                 'Idioma',
+
+    // ── Configuraci\u00f3n — temas ──────────────────────────────────────
+    'theme.light':                       'Claro',
+    'theme.dark':                        'Oscuro',
+    'theme.oled':                        'OLED',
+    'theme.cyberpunk':                   'Cyberpunk',
+    'theme.batman':                      'Batman',
+
+    // ── Configuraci\u00f3n — fondo ───────────────────────────────────────
+    'settings.background_image':         'Imagen de fondo',
+    'settings.no_background':            'Sin fondo configurado',
+    'settings.dim_background':           'Atenuar fondo',
+    'btn.upload_bg':                     'Subir',
+    'btn.change_bg':                     'Cambiar',
+
+    // ── Configuraci\u00f3n — color de acento ────────────────────────────
+    'settings.accent_color':             'Color de acento',
+    'settings.custom_color':             'Color personalizado',
+
+    // ── Configuraci\u00f3n — preferencias ──────────────────────────────
+    'pref.open_new_tab':                 'Abrir enlaces en nueva pesta\u00f1a',
+    'pref.show_url':                     'Mostrar URL en las tarjetas',
+    'pref.two_col':                      'Dise\u00f1o de dos columnas',
+
+    // ── Configuraci\u00f3n — gesti\u00f3n de usuarios ───────────────────────
+    'admin.user_management':             'Gesti\u00f3n de usuarios',
+    'admin.loading_users':               'Cargando usuarios\u2026',
+    'admin.col_username':                'Usuario',
+    'admin.col_role':                    'Rol',
+    'admin.col_created':                 'Creado',
+    'admin.col_actions':                 'Acciones',
+    'btn.add_user':                      'Agregar usuario',
+    'btn.edit_user':                     'Editar',
+    'btn.delete_user':                   'Eliminar',
+    'modal.add_user':                    'Agregar usuario',
+    'modal.edit_user':                   'Editar usuario',
+    'modal.delete_user':                 'Eliminar usuario',
+    'confirm.delete_user':               '\u00bfEst\u00e1s seguro de que quieres eliminar \u201c{name}\u201d?',
+    'confirm.delete_user_warning':       'Esto eliminar\u00e1 permanentemente todas sus colecciones, secciones y enlaces.',
+    'form.password_label':               'Contrase\u00f1a',
+    'form.new_password_optional':        'Nueva contrase\u00f1a (dejar vac\u00edo para mantener la actual)',
+    'form.password_hint':                'M\u00ednimo 6 caracteres',
+    'form.admin_privileges':             'Privilegios de administrador',
+    'btn.create_user':                   'Crear usuario',
+    'error.load_users':                  'Error al cargar usuarios',
+    'error.create_user':                 'Error al crear usuario',
+    'error.load_user':                   'Error al cargar usuario',
+    'error.update_user':                 'Error al actualizar usuario',
+    'error.delete_user':                 'Error al eliminar usuario',
+
+    // ── Configuraci\u00f3n — cuenta ─────────────────────────────────────
+    'account.username':                  'Usuario',
+    'account.role':                      'Rol',
+    'account.role_admin':                'Administrador',
+    'account.role_user':                 'Usuario',
+    'btn.change_password':               'Cambiar contrase\u00f1a',
+    'btn.logout':                        'Cerrar sesi\u00f3n',
+
+    // ── Configuraci\u00f3n — datos / exportar ───────────────────────────
+    'export.title':                      'Exportar datos',
+    'export.hint':                       'Descarga todas tus colecciones, secciones y enlaces como archivo JSON de respaldo.',
+    'btn.export_json':                   'Exportar JSON',
+    'export.exporting':                  'Exportando\u2026',
+    'export.failed':                     'Error al exportar.',
+
+    // ── Configuraci\u00f3n — datos / importar ──────────────────────────
+    'import.ctrltab_title':              'Importar respaldo ctrlTAB',
+    'import.ctrltab_hint':               'Restaura colecciones desde un respaldo JSON de ctrlTAB exportado previamente.',
+    'import.linkwarden_title':           'Importar desde Linkwarden',
+    'import.linkwarden_hint':            'Sube un archivo de exportaci\u00f3n JSON de Linkwarden. Cada colecci\u00f3n se importar\u00e1 con una secci\u00f3n (\u201cEnlaces\u201d).',
+    'import.bookmarks_title':            'Importar marcadores del navegador',
+    'import.bookmarks_hint':             'Importa marcadores desde Chrome, Firefox o cualquier navegador que exporte en formato HTML de Netscape.',
+    'btn.choose_file':                   'Elegir archivo',
+    'import.importing':                  'Importando\u2026',
+    'import.success':                    '\u2713 {collections} colecci\u00f3n{c_plural} y {links} enlace{l_plural} importado{l_plural}.',
+    'import.failed':                     'Error al importar.',
+
+    // ── Configuraci\u00f3n — pie de p\u00e1gina ──────────────────────────────
+    'footer.credits':                    'Built by Michael Smith, with Claude Code',
+
+    // ── Cambiar contrase\u00f1a ─────────────────────────────────────────
+    'modal.change_password':             'Cambiar contrase\u00f1a',
+    'form.current_password':             'Contrase\u00f1a actual',
+    'form.new_password':                 'Nueva contrase\u00f1a',
+    'form.confirm_password':             'Confirmar nueva contrase\u00f1a',
+    'error.password_mismatch':           'Las nuevas contrase\u00f1as no coinciden',
+    'success.password_changed':          'Contrase\u00f1a cambiada exitosamente',
+    'error.change_password':             'Error al cambiar la contrase\u00f1a',
+
+    // ── B\u00fasqueda ────────────────────────────────────────────────────
+    'search.title':                      'B\u00fasqueda: \u201c{query}\u201d',
+    'search.no_results':                 'Sin resultados para \u201c{query}\u201d',
+    'search.result_count':               '{n} resultado{plural}',
+
+    // ── Inicio de sesi\u00f3n ───────────────────────────────────────────
+    'login.subtitle':                    'Gestor de enlaces',
+    'login.username':                    'Usuario',
+    'login.password':                    'Contrase\u00f1a',
+    'btn.login':                         'Iniciar sesi\u00f3n',
+    'error.login_failed':                'Error al iniciar sesi\u00f3n',
+  },
 };
 
 // ── Core ──────────────────────────────────────────────────────────────────────
@@ -348,8 +549,11 @@ let _lang = 'en';
 
 function detectLang() {
   const saved = localStorage.getItem('ctrltab-lang');
-  if (saved === 'nl' || saved === 'en') return saved;
-  return navigator.language?.toLowerCase().startsWith('nl') ? 'nl' : 'en';
+  if (saved === 'nl' || saved === 'en' || saved === 'es') return saved;
+  const lang = navigator.language?.toLowerCase() ?? '';
+  if (lang.startsWith('nl')) return 'nl';
+  if (lang.startsWith('es')) return 'es';
+  return 'en';
 }
 
 /**

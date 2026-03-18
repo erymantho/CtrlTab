@@ -51,6 +51,19 @@ const uploadJson = multer({
   }
 });
 
+const uploadHtml = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (['text/html', 'application/xhtml+xml'].includes(file.mimetype) || ['.html', '.htm'].includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('INVALID_TYPE'));
+    }
+  }
+});
+
 const uploadBg = multer({
   storage: multer.diskStorage({
     destination: UPLOADS_DIR,
@@ -683,6 +696,210 @@ app.post('/api/import/linkwarden', authenticateToken, (req, res, next) => {
       res.json({ imported: result });
     } catch (err) {
       console.error('Import error:', err);
+      res.status(500).json({ error: 'Import failed: ' + err.message });
+    }
+  });
+});
+
+// ─── Export ───────────────────────────────────────────────────────
+app.get('/api/export', authenticateToken, (req, res) => {
+  const collections = db.prepare(
+    'SELECT id, name, icon FROM collections WHERE user_id = ? ORDER BY sort_order'
+  ).all(req.user.id);
+
+  const result = collections.map(col => {
+    const sections = db.prepare(
+      'SELECT id, name FROM sections WHERE collection_id = ? ORDER BY sort_order'
+    ).all(col.id);
+    return {
+      name: col.name,
+      icon: col.icon,
+      sections: sections.map(sec => {
+        const links = db.prepare(
+          'SELECT title, url, favicon FROM links WHERE section_id = ? ORDER BY sort_order'
+        ).all(sec.id);
+        return {
+          name: sec.name,
+          links: links.map(l => ({
+            title: l.title,
+            url: l.url,
+            favicon: l.favicon && !l.favicon.startsWith('/api/uploads/') ? l.favicon : null
+          }))
+        };
+      })
+    };
+  });
+
+  const date = new Date().toISOString().split('T')[0];
+  res.setHeader('Content-Disposition', `attachment; filename="ctrltab-backup-${date}.json"`);
+  res.setHeader('Content-Type', 'application/json');
+  res.json({ version: '1.0', exported_at: new Date().toISOString(), collections: result });
+});
+
+// ─── ctrlTAB backup import ────────────────────────────────────────
+app.post('/api/import/ctrltab', authenticateToken, (req, res) => {
+  uploadJson.single('file')(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'File too large (max 10 MB)' });
+      if (err.message === 'INVALID_TYPE') return res.status(400).json({ error: 'Only JSON files are supported.' });
+      return res.status(400).json({ error: err.message || 'Upload failed' });
+    }
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+
+    let data;
+    try {
+      data = JSON.parse(req.file.buffer.toString('utf8'));
+    } catch {
+      return res.status(400).json({ error: 'Invalid JSON file.' });
+    }
+
+    if (data?.version !== '1.0' || !Array.isArray(data?.collections)) {
+      return res.status(400).json({ error: 'Invalid ctrlTAB backup format.' });
+    }
+
+    const importAll = db.transaction(() => {
+      const counts = { collections: 0, links: 0 };
+      const maxSort = db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM collections WHERE user_id = ?');
+      const insertCol  = db.prepare('INSERT INTO collections (name, icon, sort_order, user_id) VALUES (?, ?, ?, ?)');
+      const insertSec  = db.prepare('INSERT INTO sections (collection_id, name, sort_order) VALUES (?, ?, ?)');
+      const insertLink = db.prepare('INSERT INTO links (section_id, title, url, favicon, sort_order) VALUES (?, ?, ?, ?, ?)');
+
+      for (const col of data.collections) {
+        if (!col.name || !Array.isArray(col.sections)) continue;
+        const sortOrder = maxSort.get(req.user.id).m + 1;
+        const newCol = insertCol.run(String(col.name).slice(0, 255), col.icon ? String(col.icon).slice(0, 255) : null, sortOrder, req.user.id);
+        counts.collections++;
+
+        for (let si = 0; si < col.sections.length; si++) {
+          const sec = col.sections[si];
+          if (!sec.name || !Array.isArray(sec.links)) continue;
+          const newSec = insertSec.run(newCol.lastInsertRowid, String(sec.name).slice(0, 255), si);
+
+          for (let li = 0; li < sec.links.length; li++) {
+            const link = sec.links[li];
+            if (!link.url) continue;
+            const favicon = link.favicon && !String(link.favicon).startsWith('/api/uploads/') ? String(link.favicon).slice(0, 2048) : null;
+            insertLink.run(newSec.lastInsertRowid, (link.title || link.url).slice(0, 2048), link.url.slice(0, 2048), favicon, li);
+            counts.links++;
+          }
+        }
+      }
+      return counts;
+    });
+
+    try {
+      res.json({ imported: importAll() });
+    } catch (err) {
+      console.error('ctrlTAB import error:', err);
+      res.status(500).json({ error: 'Import failed: ' + err.message });
+    }
+  });
+});
+
+// ─── Browser bookmarks import ─────────────────────────────────────
+function parseNetscapeBookmarks(html) {
+  const collections = [];
+  let dlDepth = 0;
+  let col = null;
+  let sec = null;
+
+  function unescape(str) {
+    return str
+      .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'");
+  }
+
+  for (const rawLine of html.split('\n')) {
+    const l = rawLine.trim();
+    if (/<DL/i.test(l))  { dlDepth++; continue; }
+    if (/<\/DL/i.test(l)) {
+      dlDepth--;
+      if (dlDepth === 1) sec = null;
+      if (dlDepth === 0) { col = null; sec = null; }
+      continue;
+    }
+
+    const h3 = l.match(/<H3[^>]*>([^<]+)<\/H3>/i);
+    if (h3) {
+      const name = unescape(h3[1].trim());
+      if (dlDepth === 1) {
+        col = { name, sections: [] };
+        collections.push(col);
+        sec = null;
+      } else if (dlDepth === 2 && col) {
+        sec = { name, links: [] };
+        col.sections.push(sec);
+      }
+      continue;
+    }
+
+    const a = l.match(/<A\s[^>]*HREF="([^"]*)"[^>]*>([^<]*)<\/A>/i);
+    if (a && col) {
+      if (!sec) {
+        sec = { name: 'Links', links: [] };
+        col.sections.push(sec);
+      }
+      sec.links.push({ title: unescape(a[2].trim()) || a[1], url: a[1] });
+    }
+  }
+  return collections;
+}
+
+app.post('/api/import/bookmarks', authenticateToken, (req, res) => {
+  uploadHtml.single('file')(req, res, (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ error: 'File too large (max 10 MB)' });
+      if (err.message === 'INVALID_TYPE') return res.status(400).json({ error: 'Only HTML files are supported.' });
+      return res.status(400).json({ error: err.message || 'Upload failed' });
+    }
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+
+    const html = req.file.buffer.toString('utf8');
+    if (!html.includes('NETSCAPE-Bookmark-file')) {
+      return res.status(400).json({ error: 'Invalid bookmark file. Export your bookmarks as HTML from your browser.' });
+    }
+
+    let parsed;
+    try { parsed = parseNetscapeBookmarks(html); }
+    catch { return res.status(400).json({ error: 'Failed to parse bookmark file.' }); }
+
+    if (!parsed.length) {
+      return res.status(400).json({ error: 'No bookmarks found in file.' });
+    }
+
+    const importAll = db.transaction(() => {
+      const counts = { collections: 0, links: 0 };
+      const maxSort = db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM collections WHERE user_id = ?');
+      const insertCol  = db.prepare('INSERT INTO collections (name, sort_order, user_id) VALUES (?, ?, ?)');
+      const insertSec  = db.prepare('INSERT INTO sections (collection_id, name, sort_order) VALUES (?, ?, ?)');
+      const insertLink = db.prepare('INSERT INTO links (section_id, title, url, sort_order) VALUES (?, ?, ?, ?)');
+
+      for (const col of parsed) {
+        const validSections = col.sections.filter(s => s.links.some(l => l.url.startsWith('http')));
+        if (!validSections.length) continue;
+
+        const sortOrder = maxSort.get(req.user.id).m + 1;
+        const newCol = insertCol.run(col.name.slice(0, 255), sortOrder, req.user.id);
+        counts.collections++;
+
+        for (let si = 0; si < validSections.length; si++) {
+          const sec = validSections[si];
+          const newSec = insertSec.run(newCol.lastInsertRowid, sec.name.slice(0, 255), si);
+          let li = 0;
+          for (const link of sec.links) {
+            if (!link.url.startsWith('http')) continue;
+            insertLink.run(newSec.lastInsertRowid, link.title.slice(0, 2048), link.url.slice(0, 2048), li++);
+            counts.links++;
+          }
+        }
+      }
+      return counts;
+    });
+
+    try {
+      res.json({ imported: importAll() });
+    } catch (err) {
+      console.error('Bookmarks import error:', err);
       res.status(500).json({ error: 'Import failed: ' + err.message });
     }
   });
