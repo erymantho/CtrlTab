@@ -118,6 +118,7 @@ ctrlTAB is now available at `http://localhost:8090`. Log in with your admin cred
 - [x] Import from Linkwarden (JSON export)
 - [x] Import ctrlTAB backup (JSON restore)
 - [x] Import browser bookmarks (Netscape HTML format — Chrome, Firefox, etc.)
+- [x] Copy link URL to clipboard (button on each link card)
 - [ ] Descriptions for collections, sections, and links
 - [ ] Import from other services (Raindrop, Pocket)
 - [ ] Tags and filtering

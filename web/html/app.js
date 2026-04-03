@@ -1573,6 +1573,7 @@ function initDragAndDrop() {
     }, { signal });
 }
 
+
 async function copyLinkUrl(url, btn) {
     try {
         await navigator.clipboard.writeText(url);
