@@ -96,6 +96,11 @@ const TRANSLATIONS = {
     'settings.dim_background':           'Dim background',
     'btn.upload_bg':                     'Upload',
     'btn.change_bg':                     'Change',
+    'settings.video_background':         'YouTube video background',
+    'settings.no_video':                 'No video set',
+    'settings.youtube_placeholder':      'YouTube URL or video ID',
+    'btn.set_video':                     'Set',
+    'error.invalid_youtube_url':         'Invalid YouTube URL',
 
     // ── Settings — accent color ─────────────────────────────────
     'settings.accent_color':             'Accent color',
@@ -280,6 +285,11 @@ const TRANSLATIONS = {
     'settings.dim_background':           'Achtergrond dimmen',
     'btn.upload_bg':                     'Uploaden',
     'btn.change_bg':                     'Wijzigen',
+    'settings.video_background':         'YouTube-videoachtergrond',
+    'settings.no_video':                 'Geen video ingesteld',
+    'settings.youtube_placeholder':      'YouTube-URL of video-ID',
+    'btn.set_video':                     'Instellen',
+    'error.invalid_youtube_url':         'Ongeldige YouTube-URL',
 
     // ── Instellingen — accentkleur ───────────────────────────────
     'settings.accent_color':             'Accentkleur',
@@ -464,6 +474,11 @@ const TRANSLATIONS = {
     'settings.dim_background':           'Atenuar fondo',
     'btn.upload_bg':                     'Subir',
     'btn.change_bg':                     'Cambiar',
+    'settings.video_background':         'Fondo de video de YouTube',
+    'settings.no_video':                 'Sin video configurado',
+    'settings.youtube_placeholder':      'URL de YouTube o ID de video',
+    'btn.set_video':                     'Establecer',
+    'error.invalid_youtube_url':         'URL de YouTube no v\u00e1lida',
 
     // ── Configuraci\u00f3n — color de acento ────────────────────────────
     'settings.accent_color':             'Color de acento',

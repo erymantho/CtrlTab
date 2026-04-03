@@ -55,9 +55,16 @@ async function loadUserPreferences() {
         } else {
             localStorage.removeItem('ctrltab-bg');
         }
+        _backgroundVideo = prefs.backgroundVideo || null;
+        if (_backgroundVideo) {
+            localStorage.setItem('ctrltab-yt-bg', _backgroundVideo);
+        } else {
+            localStorage.removeItem('ctrltab-yt-bg');
+        }
         _backgroundDim = prefs.backgroundDim !== false;
         localStorage.setItem('ctrltab-bg-dim', _backgroundDim ? '1' : '0');
         applyBackgroundImage(_backgroundImage);
+        applyBackgroundVideo(_backgroundVideo);
         applyBackgroundDim(_backgroundDim);
     } catch {}
 }
@@ -74,6 +81,59 @@ function applyBackgroundImage(url) {
 
 function applyBackgroundDim(dim) {
     document.documentElement.classList.toggle('has-user-bg-dim', !!dim);
+}
+
+function parseYouTubeId(input) {
+    input = input.trim();
+    // Plain 11-char video ID
+    if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+    const match = input.match(/(?:youtube\.com\/watch\?.*v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
+}
+
+function applyBackgroundVideo(videoId) {
+    const iframe = document.getElementById('yt-bg-iframe');
+    if (videoId) {
+        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1`;
+        document.documentElement.classList.add('has-user-bg', 'has-yt-bg');
+    } else {
+        iframe.src = 'about:blank';
+        document.documentElement.classList.remove('has-yt-bg');
+        if (!_backgroundImage) {
+            document.documentElement.classList.remove('has-user-bg');
+        }
+    }
+}
+
+async function handleYouTubeUrlSet() {
+    const input = document.getElementById('ytBgInput');
+    const videoId = parseYouTubeId(input.value);
+    if (!videoId) {
+        alert(t('error.invalid_youtube_url'));
+        return;
+    }
+    // Mutual exclusion: clear image background
+    _backgroundImage = null;
+    localStorage.removeItem('ctrltab-bg');
+    applyBackgroundImage(null);
+
+    _backgroundVideo = videoId;
+    localStorage.setItem('ctrltab-yt-bg', videoId);
+    applyBackgroundVideo(videoId);
+    try {
+        await apiRequest('/auth/preferences', { method: 'PUT', body: JSON.stringify({ backgroundImage: null, backgroundVideo: videoId }) });
+    } catch {}
+    showSettings();
+}
+
+async function removeYouTubeBg() {
+    _backgroundVideo = null;
+    localStorage.removeItem('ctrltab-yt-bg');
+    applyBackgroundVideo(null);
+    try {
+        await apiRequest('/auth/preferences', { method: 'PUT', body: JSON.stringify({ backgroundVideo: null }) });
+    } catch {}
+    showSettings();
 }
 
 function applyShowLinkUrls(show) {
@@ -226,6 +286,7 @@ function setOpenInNewTab(enabled) {
 // Apply theme and accent color immediately to prevent flash
 let _accentColor = null;
 let _backgroundImage = null;
+let _backgroundVideo = null;
 let _backgroundDim = true;
 let _showLinkUrls = false;
 let _twoColLayout = false;
@@ -674,6 +735,31 @@ function showSettings() {
                         <span>${t('settings.dim_background')}</span>
                     </div>
                 ` : ''}
+            </div>
+            <div class="bg-image-section">
+                <span class="accent-color-label">${t('settings.video_background')}</span>
+                <div class="bg-image-controls">
+                    ${_backgroundVideo ? `
+                        <span class="bg-image-none" style="font-family:monospace;font-size:12px;">${_backgroundVideo}</span>
+                        <button class="btn-text-danger" onclick="removeYouTubeBg()">${t('btn.remove')}</button>
+                    ` : `
+                        <span class="bg-image-none">${t('settings.no_video')}</span>
+                    `}
+                </div>
+                ${!_backgroundVideo ? `
+                    <div style="display:flex;gap:var(--spacing-sm);margin-top:var(--spacing-sm);">
+                        <input type="text" id="ytBgInput" class="form-input" placeholder="${t('settings.youtube_placeholder')}" style="flex:1;">
+                        <button class="btn-secondary" onclick="handleYouTubeUrlSet()">${t('btn.set_video')}</button>
+                    </div>
+                ` : `
+                    <div class="toggle-label" style="margin-top: var(--spacing-sm);">
+                        <label class="toggle-switch">
+                            <input type="checkbox" ${_backgroundDim ? 'checked' : ''} onchange="handleBgDimToggle(this.checked)">
+                            <span class="toggle-track"></span>
+                        </label>
+                        <span>${t('settings.dim_background')}</span>
+                    </div>
+                `}
             </div>
             ${currentTheme !== 'cyberpunk' && currentTheme !== 'batman' ? `<div class="accent-color-section">
                 <span class="accent-color-label">${t('settings.accent_color')}</span>
@@ -1820,10 +1906,14 @@ async function handleBgUpload(input) {
             throw new Error(data.error || 'Upload failed');
         }
         const { url } = await res.json();
+        // Mutual exclusion: clear YouTube background
+        _backgroundVideo = null;
+        localStorage.removeItem('ctrltab-yt-bg');
+        applyBackgroundVideo(null);
         _backgroundImage = url;
         localStorage.setItem('ctrltab-bg', url);
         applyBackgroundImage(url);
-        await apiRequest('/auth/preferences', { method: 'PUT', body: JSON.stringify({ backgroundImage: url }) });
+        await apiRequest('/auth/preferences', { method: 'PUT', body: JSON.stringify({ backgroundImage: url, backgroundVideo: null }) });
         showSettings();
     } catch (err) {
         alert(err.message || 'Failed to upload background');

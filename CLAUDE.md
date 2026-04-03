@@ -46,7 +46,7 @@ links        (id, section_id → sections, title, url, favicon, sort_order, crea
 
 **`users.preferences`** is a JSON column:
 ```json
-{ "accentColor": "#ff6b00", "backgroundImage": "/api/uploads/uuid.jpg", "backgroundDim": true }
+{ "accentColor": "#ff6b00", "backgroundImage": "/api/uploads/uuid.jpg", "backgroundDim": true, "backgroundVideo": "dQw4w9WgXcQ" }
 ```
 
 Cascading deletes: deleting a collection removes its sections and links.
@@ -64,7 +64,7 @@ All routes except `/api/auth/login` and `/api/health` require a JWT Bearer token
 | GET | `/api/auth/verify` | Validate token |
 | POST | `/api/auth/change-password` | Change password |
 | GET | `/api/auth/preferences` | Get user preferences |
-| PUT | `/api/auth/preferences` | `{ accentColor, backgroundImage, backgroundDim }` |
+| PUT | `/api/auth/preferences` | `{ accentColor, backgroundImage, backgroundDim, backgroundVideo }` |
 
 ### Admin (requires `is_admin`)
 | Method | Route | Description |
@@ -124,6 +124,7 @@ let currentCollectionId = null;    // active collection
 let currentView = 'dashboard';     // 'dashboard' | 'settings' | 'search'
 let _accentColor = null;           // user accent color
 let _backgroundImage = null;       // user background URL
+let _backgroundVideo = null;       // YouTube video ID for background
 let _backgroundDim = true;         // dim overlay toggle
 let _showLinkUrls = false;         // show URL under link title
 let _twoColLayout = false;         // two-column section layout
@@ -149,6 +150,10 @@ let _colHoverTimer, _colHoverCtrl;
 | `setTheme(theme)` | Saves to localStorage + triggers boot animations |
 | `applyAccentColor(color)` | Sets `--color-accent` CSS variable on `:root` |
 | `applyBackgroundImage(url)` | Sets `--user-bg` + class `has-user-bg` on `<html>` |
+| `applyBackgroundVideo(videoId)` | Sets YouTube iframe `src`, toggles class `has-yt-bg` on `<html>` |
+| `parseYouTubeId(input)` | Extracts 11-char video ID from URL or plain ID |
+| `handleYouTubeUrlSet()` | Parses input, clears image bg (mutual exclusion), saves to prefs |
+| `removeYouTubeBg()` | Clears video background and saves to prefs |
 | `applyShowLinkUrls(show)` | Toggles class `show-link-urls` on `<html>` |
 | `toggleShowLinkUrls(checked)` | Saves preference to localStorage + calls `applyShowLinkUrls` |
 | `applyTwoColLayout(enabled)` | Toggles class `two-col-layout` on `<html>` |
@@ -255,6 +260,7 @@ Admin credentials are checked and updated on every startup if env vars have chan
 - **Focus-on-type:** any printable character typed outside an input/modal automatically focuses the search bar and passes the keystroke through; modifier combos (`Ctrl`, `Cmd`, `Alt`) are ignored
 - **Search:** sidebar search bar above the collections header; `Enter` in the search input opens the first result; clicking a collection always clears the search state; search results are always rendered in a single column regardless of the two-column layout setting
 - **Empty state flash fix:** `index.html` starts with an empty `sectionsContainer`; the "Create your first collection" empty state is only injected by JS after `loadCollections()` returns with 0 results — preventing the false flash on every page load
+- **YouTube video background:** stored as `backgroundVideo` (11-char video ID) in `users.preferences`. The `#yt-bg-container` div (fixed, `z-index:0`) holds an iframe sized via `max(100vw, 177.78vh)` to cover the viewport. Class `has-yt-bg` on `<html>` shows the container and sets `body { background-color: #000 }`. Dim overlay uses `.yt-bg-dim` inside the container (opacity controlled by `has-user-bg-dim`). Image background and YouTube video are mutually exclusive — setting one clears the other. Flash prevention: inline script in `index.html` restores `has-yt-bg` from `ctrltab-yt-bg` localStorage key before first render.
 - **i18n:** `i18n.js` defines `TRANSLATIONS` (EN/NL/ES), `t(key, vars)` with `{var}` interpolation, `detectLang()` (localStorage → `navigator.language` → fallback `en`). `applyTranslations()` walks `data-i18n*` attributes. Language persisted as `ctrltab-lang` in localStorage.
 - **Flash prevention conflict:** inline `<script>` in `index.html`/`login.html` uses `var th` (not `var t`) to avoid shadowing the global `t()` translation function.
 - **Linkwarden import:** mapping is Linkwarden collection → ctrlTAB collection + one section named "Links"; sub-collections (parentID != null) are treated as top-level collections; tags are ignored; entire import runs in a single SQLite transaction

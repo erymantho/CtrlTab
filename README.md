@@ -20,7 +20,7 @@ A lightweight, self-hosted bookmark and link manager to organize your links into
 - 🖼️ **Custom Icons** — Upload your own PNG, SVG, or ICO as a link icon
 - 🎨 **Themes** — Light, Dark, OLED, Cyberpunk, and Batman
 - 🎨 **Accent Color** — Per-user accent color with preset palette and custom color picker
-- 🖼️ **Custom Background** — Upload a personal background image, works across all themes
+- 🖼️ **Custom Background** — Upload a personal background image (JPG/PNG/GIF) or set a YouTube video as background, works across all themes
 - 🔍 **Search** — Global search across all links and collections; type anywhere to instantly focus the search bar
 - ⬜ **Two-column layout** — Optional two-column section layout per user preference
 - ↕️ **Drag & Drop** — Reorder links and sections by dragging; reset to A-Z with one click
@@ -107,7 +107,8 @@ ctrlTAB is now available at `http://localhost:8090`. Log in with your admin cred
 - [x] User accounts and authentication
 - [x] Drag & drop reordering of links and sections
 - [x] Drag links across sections and collections
-- [x] Custom background image per user
+- [x] Custom background image per user (JPG/PNG/GIF)
+- [x] YouTube video as background
 - [x] Show/hide URL in link cards (user preference)
 - [x] Two-column section layout (user preference)
 - [x] Global search across all links and collections

@@ -121,6 +121,53 @@ html.has-user-bg.has-user-bg-dim[data-theme="batman"] .grid-background {
         var(--user-bg) center center / cover no-repeat;
 }
 
+/* YouTube video background */
+#yt-bg-container {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    display: none;
+}
+
+html.has-yt-bg #yt-bg-container {
+    display: block;
+}
+
+html.has-yt-bg body {
+    background-color: #000;
+    background-image: none;
+}
+
+html.has-yt-bg .grid-background {
+    display: none;
+}
+
+#yt-bg-iframe {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: max(100vw, 177.78vh);
+    height: max(56.25vw, 100vh);
+    border: none;
+}
+
+.yt-bg-dim {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+html.has-yt-bg.has-user-bg-dim .yt-bg-dim {
+    opacity: 1;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    Layout
    ═══════════════════════════════════════════════════════════════ */

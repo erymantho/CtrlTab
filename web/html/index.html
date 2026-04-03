@@ -29,10 +29,23 @@
                     document.documentElement.classList.add('has-user-bg-dim');
                 }
             }
+            var yt = localStorage.getItem('ctrltab-yt-bg');
+            if (yt) {
+                document.documentElement.classList.add('has-user-bg', 'has-yt-bg');
+                if (localStorage.getItem('ctrltab-bg-dim') !== '0') {
+                    document.documentElement.classList.add('has-user-bg-dim');
+                }
+            }
         })();
     </script>
 </head>
 <body>
+    <!-- YouTube video background -->
+    <div id="yt-bg-container">
+        <div class="yt-bg-dim"></div>
+        <iframe id="yt-bg-iframe" frameborder="0" allow="autoplay; fullscreen" src="about:blank"></iframe>
+    </div>
+
     <!-- Cyberpunk grid background -->
     <div class="grid-background"></div>
 
